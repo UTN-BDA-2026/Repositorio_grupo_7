@@ -1,0 +1,16 @@
+# Entornos virtuales
+venv/
+env/
+
+# Datos locales
+postgres_data/
+
+# Variables de entorno
+.env
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+
+# Archivos de SO
+.DS_Store

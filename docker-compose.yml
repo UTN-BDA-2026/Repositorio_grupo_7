@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: bda_tp_final
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin1234
+      - POSTGRES_DB=dba_final
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5438:5432"
