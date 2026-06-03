@@ -1,0 +1,28 @@
+from database.db import Base
+from sqlalchemy import Column, String, Boolean, DateTime, Numeric
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import func
+
+
+
+# CREATE TABLE public.payment_methods (
+#     id uuid NOT NULL,
+#     name character varying(255) NOT NULL,
+#     surcharge_percentage numeric(5,2) DEFAULT '0'::numeric NOT NULL,
+#     is_active boolean DEFAULT true NOT NULL,
+#     created_at timestamp(0) without time zone,
+#     updated_at timestamp(0) without time zone,
+#     deleted_at timestamp(0) without time zone
+# );
+
+
+class PaymentMethod(Base):
+    __tablename__ = "payment_methods"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False, unique=True)
+    surcharge_percentage = Column(Numeric(5,2), nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)    
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    deleted_at = Column(DateTime, nullable=True)
