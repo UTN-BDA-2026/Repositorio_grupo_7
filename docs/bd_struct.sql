@@ -1,16 +1,8 @@
---
--- PostgreSQL database dump
--- Sistema de Ventas (SisVentas) - Estructura limpia para TP
---
--- Dumped from database version 18.4
---
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
@@ -18,11 +10,6 @@ SET row_security = off;
 
 SET default_tablespace = '';
 SET default_table_access_method = heap;
-
-
--- ============================================================
---  TABLAS MAESTRAS (catálogos y configuración)
--- ============================================================
 
 CREATE TABLE public.taxes (
     id uuid NOT NULL,
@@ -35,9 +22,6 @@ CREATE TABLE public.taxes (
     deleted_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.taxes OWNER TO sail;
-
-
 CREATE TABLE public.brands (
     id uuid NOT NULL,
     name character varying(255) NOT NULL,
@@ -49,9 +33,6 @@ CREATE TABLE public.brands (
     deleted_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.brands OWNER TO sail;
-
-
 CREATE TABLE public.categories (
     id uuid NOT NULL,
     name character varying(255) NOT NULL,
@@ -62,9 +43,6 @@ CREATE TABLE public.categories (
     deleted_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.categories OWNER TO sail;
-
-
 CREATE TABLE public.payment_methods (
     id uuid NOT NULL,
     name character varying(255) NOT NULL,
@@ -74,13 +52,6 @@ CREATE TABLE public.payment_methods (
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.payment_methods OWNER TO sail;
-
-
--- ============================================================
---  SUCURSALES Y USUARIOS
--- ============================================================
 
 CREATE TABLE public.branches (
     id uuid NOT NULL,
@@ -93,9 +64,6 @@ CREATE TABLE public.branches (
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.branches OWNER TO sail;
-
 
 CREATE TABLE public.users (
     id uuid NOT NULL,
@@ -110,13 +78,6 @@ CREATE TABLE public.users (
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.users OWNER TO sail;
-
-
--- ============================================================
---  PRODUCTOS E INVENTARIO
--- ============================================================
 
 CREATE TABLE public.products (
     id uuid NOT NULL,
@@ -139,9 +100,6 @@ CREATE TABLE public.products (
     deleted_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.products OWNER TO sail;
-
-
 CREATE TABLE public.branch_product (
     branch_id uuid NOT NULL,
     product_id uuid NOT NULL,
@@ -150,9 +108,6 @@ CREATE TABLE public.branch_product (
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.branch_product OWNER TO sail;
-
 
 CREATE TABLE public.inventory_movements (
     id uuid NOT NULL,
@@ -168,9 +123,6 @@ CREATE TABLE public.inventory_movements (
     updated_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.inventory_movements OWNER TO sail;
-
-
 CREATE TABLE public.suppliers (
     id uuid NOT NULL,
     name character varying(255) NOT NULL,
@@ -183,13 +135,6 @@ CREATE TABLE public.suppliers (
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.suppliers OWNER TO sail;
-
-
--- ============================================================
---  CLIENTES
--- ============================================================
 
 CREATE TABLE public.clients (
     id uuid NOT NULL,
@@ -204,13 +149,6 @@ CREATE TABLE public.clients (
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.clients OWNER TO sail;
-
-
--- ============================================================
---  VENTAS Y CAJA
--- ============================================================
 
 CREATE TABLE public.cash_register_sessions (
     id uuid NOT NULL,
@@ -227,9 +165,6 @@ CREATE TABLE public.cash_register_sessions (
     CONSTRAINT cash_register_sessions_status_check CHECK (((status)::text = ANY ((ARRAY['open'::character varying, 'closed'::character varying])::text[])))
 );
 
-ALTER TABLE public.cash_register_sessions OWNER TO sail;
-
-
 CREATE TABLE public.sales (
     id uuid NOT NULL,
     branch_id uuid,
@@ -243,9 +178,6 @@ CREATE TABLE public.sales (
     updated_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.sales OWNER TO sail;
-
-
 CREATE TABLE public.sale_details (
     id uuid NOT NULL,
     sale_id uuid NOT NULL,
@@ -255,13 +187,6 @@ CREATE TABLE public.sale_details (
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.sale_details OWNER TO sail;
-
-
--- ============================================================
---  COMPRAS A PROVEEDORES
--- ============================================================
 
 CREATE TABLE public.purchases (
     id uuid NOT NULL,
@@ -275,9 +200,6 @@ CREATE TABLE public.purchases (
     updated_at timestamp(0) without time zone
 );
 
-ALTER TABLE public.purchases OWNER TO sail;
-
-
 CREATE TABLE public.purchase_details (
     id uuid NOT NULL,
     purchase_id uuid NOT NULL,
@@ -287,13 +209,6 @@ CREATE TABLE public.purchase_details (
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
-
-ALTER TABLE public.purchase_details OWNER TO sail;
-
-
--- ============================================================
---  CLAVES PRIMARIAS
--- ============================================================
 
 ALTER TABLE ONLY public.taxes                ADD CONSTRAINT taxes_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.brands               ADD CONSTRAINT brands_pkey PRIMARY KEY (id);
@@ -311,11 +226,6 @@ ALTER TABLE ONLY public.sale_details         ADD CONSTRAINT sale_details_pkey PR
 ALTER TABLE ONLY public.purchases            ADD CONSTRAINT purchases_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.purchase_details     ADD CONSTRAINT purchase_details_pkey PRIMARY KEY (id);
 
-
--- ============================================================
---  RESTRICCIONES DE UNICIDAD
--- ============================================================
-
 ALTER TABLE ONLY public.branches        ADD CONSTRAINT branches_activation_code_unique UNIQUE (activation_code);
 ALTER TABLE ONLY public.brands          ADD CONSTRAINT brands_slug_unique UNIQUE (slug);
 ALTER TABLE ONLY public.clients         ADD CONSTRAINT clients_document_number_unique UNIQUE (document_number);
@@ -326,19 +236,6 @@ ALTER TABLE ONLY public.suppliers       ADD CONSTRAINT suppliers_email_unique UN
 ALTER TABLE ONLY public.suppliers       ADD CONSTRAINT suppliers_tax_id_unique UNIQUE (tax_id);
 ALTER TABLE ONLY public.users           ADD CONSTRAINT users_email_unique UNIQUE (email);
 ALTER TABLE ONLY public.branch_product  ADD CONSTRAINT branch_product_branch_id_product_id_unique UNIQUE (branch_id, product_id);
-
-
--- ============================================================
---  ÍNDICES
---  NOTA: Los índices se agregarán más adelante de forma
---  intencional para documentar la diferencia de rendimiento
---  con EXPLAIN ANALYZE (antes y después).
--- ============================================================
-
-
--- ============================================================
---  CLAVES FORÁNEAS
--- ============================================================
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_branch_id_foreign FOREIGN KEY (branch_id) REFERENCES public.branches(id) ON DELETE SET NULL;
@@ -408,8 +305,3 @@ ALTER TABLE ONLY public.purchase_details
 
 ALTER TABLE ONLY public.purchase_details
     ADD CONSTRAINT purchase_details_product_id_foreign FOREIGN KEY (product_id) REFERENCES public.products(id) ON DELETE RESTRICT;
-
-
--- ============================================================
---  FIN DEL DUMP
--- ============================================================
