@@ -91,31 +91,39 @@ python main.py
 
 Para entender las decisiones de diseño técnico, la estructura de la base de datos y cómo cumplimos con los puntos requeridos en los enunciados del práctico, revisá el documento [Lineamientos del Proyecto](docs/lineamientos.md).
 
-## 🎯 Cobertura de Requisitos de la Cátedra (Borrador de progreso)
+También puedes consultar el Diagrama de Entidad-Relación de la base de datos (haz clic en la imagen para verla en tamaño completo):
 
-*Nota: Esta sección es temporal y explica cómo la arquitectura actual cumple con los requisitos del Trabajo Práctico. Será actualizada en la entrega final.*
+<p align="center">
+  <a href="docs/diagrama_bda_tp_fnal.png" target="_blank">
+    <img src="docs/diagrama_bda_tp_fnal.png" alt="Diagrama de Base de Datos" width="600"/>
+  </a>
+</p>
 
-El desarrollo de este sistema garantiza la cobertura de al menos 4 de los puntos obligatorios exigidos para la evaluación:
+## 🎯 Cobertura de Requisitos de la materia (Borrador de progreso)
+
+*Nota: Esta sección es temporal. Se explica cómo la arquitectura actual cumple con los requisitos del TP.*
+
+El desarrollo cubrirá al menos 4 de los puntos obligatorios exigidos:
 
 ### 1. ORM y/o Sin ORM (✅ Listo)
-Se implementó toda la capa de acceso a datos utilizando **SQLAlchemy (ORM)** mediante un Patrón Repositorio Genérico. Esto significa que las tareas comunes (como crear, leer, editar o borrar registros) se manejan utilizando objetos nativos de Python, logrando un código limpio y evitando escribir consultas SQL repetitivas.
+Se implementó toda la capa de acceso a datos utilizando **SQLAlchemy (ORM)** mediante un Patrón Repositorio Genérico. es decir que las tareas comunes (como crear, leer, editar o borrar registros) se manejan utilizando objetos nativos de Python, logrando un código limpio y evitando escribir consultas SQL repetitivas.
 
 ### 2. Seguridad (✅ Listo)
 La seguridad del sistema está cubierta desde la base estructural:
 *   **Archivos `.env`:** Ninguna contraseña ni dato sensible está guardado en el código fuente. Todo se lee a través de variables de entorno locales.
-*   **Prevención de Inyección SQL:** Gracias al uso estricto de SQLAlchemy, todas las entradas de datos que ingrese el usuario final son filtradas y sanitizadas automáticamente.
+*   **Prevención de Inyección SQL:** Gracias al uso de SQLAlchemy, todas las entradas de datos que haga el usuario son filtradas y sanitizadas.
 
 ### 3. Índices Estratégicos (⏳ Pendiente)
-Además de las Claves Primarias por defecto, se diseñarán índices personalizados en la base de datos para asegurar el máximo rendimiento. Estos se colocarán estratégicamente en aquellas columnas que la interfaz utilizará para búsquedas frecuentes (ej: DNI en Clientes o el SKU en Productos).
+Además de las Claves Primarias por defecto, se agregarán índices en la base de datos para asegurar el máximo rendimiento. Se colocarán estratégicamente en aquellas columnas que la interfaz utilizará para búsquedas frecuentes (ej: DNI en Clientes o el SKU en Productos).
 
 ### 4. Backup & Restore (⏳ Pendiente)
 Para facilitar la administración del sistema, se integrará una función de copias de seguridad directamente en la Interfaz Gráfica. El usuario administrador podrá generar un volcado de la base de datos con un solo clic.
 
 ### 5. Transacciones Avanzadas (⏳ Pendiente)
-Para los procesos críticos (como registrar una Venta), se optará por el enfoque "Sin ORM". Se ejecutará código SQL nativo para poder controlar manualmente la Transacción y garantizar que el registro del ticket y el descuento de stock ocurran como un bloque atómico (usando `ROLLBACK` ante cualquier falla).
+Para los procesos críticos, se optará por el enfoque "Sin ORM". Se ejecutará código SQL nativo para poder controlar manualmente la Transacción y garantizar que el registro del ticket y el descuento de stock ocurran como un bloque atómico (usando `ROLLBACK` ante fallas).
 
 ### 6. Arquitectura de Interfaz Monolítica (✅ Decidido)
-Para la presentación del sistema al usuario final, se optó por construir una aplicación de escritorio nativa utilizando **CustomTkinter**. Al integrar directamente los servicios de la base de datos con la interfaz visual, nos ahorramos la necesidad de crear y mantener APIs complejas (como FastAPI) como intermediarios. Esto resulta en un sistema mucho más rápido, directo y visualmente muy moderno.
+Para la presentación del sistema, se optó por una aplicación de escritorio utilizando **CustomTkinter**. Al integrar directamente los servicios de la base de datos con la interfaz visual, nos ahorramos la necesidad de crear y mantener APIs complejas (como FastAPI).
 
 ---
 
