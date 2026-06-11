@@ -11,7 +11,7 @@
 # );
 
 import uuid
-from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Text, CheckConstraint, func
+from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from database.db import Base
@@ -19,9 +19,9 @@ from database.db import Base
 class Purchase(Base):
     __tablename__= "purchases"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id", ondelete="RESTRICT"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
-    supplier_id = Column(UUID(as_uuid=True), ForeignKey("suppliers.id", ondelete="RESTRICT"), nullable=False)
+    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    supplier_id = Column(UUID(as_uuid=True), ForeignKey("suppliers.id"), nullable=False)
     total_amount = Column(Numeric(12, 2), nullable=False)
     status = Column(String(255), nullable=False, default = "completed")
     notes = Column(Text)
