@@ -4,4 +4,4 @@ from services.base_service import BaseService
 class CategoryService(BaseService[Category]):
     pass
 
-category_service = CategoryService(Service)
+category_service = CategoryService(Category)

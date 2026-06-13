@@ -5,7 +5,7 @@ from .brand_service import brand_service
 from .cash_register_session_service import cash_register_session_service
 from .category_service import category_service
 from .client_service import client_service
-from .inventory_movement import inventory_movement_service
+from .inventory_movement_service import inventory_movement_service
 from .payment_method_service import payment_method_service
 from .product_service import product_service
 from .purchase_detail_service import purchase_detail_service

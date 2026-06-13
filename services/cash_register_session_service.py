@@ -1,5 +1,5 @@
 from database.models.CashRegisterSession import CashRegisterSession
-from services.base_service import CashRegisterSession
+from services.base_service import BaseService
 
 class CashRegisterSessionService(BaseService[CashRegisterSession]):
     pass

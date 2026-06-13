@@ -1,5 +1,5 @@
 from database.models.SaleDetail import SaleDetail
-from service.base_service import BaseService
+from services.base_service import BaseService
 
 class SaleDetailService(BaseService[SaleDetail]):
     pass
