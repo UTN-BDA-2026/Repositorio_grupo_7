@@ -1,7 +1,7 @@
 from typing import TypeVar, Generic, Type, Any
 from sqlalchemy.orm import Session
 from database.db import Base
-from datetime import datetime
+from datetime import datetime, timezone
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -20,7 +20,10 @@ class BaseService(Generic[ModelType]):
         return db_obj
 
     def get_all(self, db:Session, skip:int=0, limit:int=100):
-        return db.query(self.model).offset(skip).limit(limit).all()
+        query = db.query(self.model)
+        if hasattr(self.model, 'is_active'):
+            query = query.filter(self.model.is_active == True)
+        return query.offset(skip).limit(limit).all()
 
     def update(self, db:Session, db_obj:ModelType, obj_in:dict):
         for clave, valor in obj_in.items():
@@ -34,7 +37,7 @@ class BaseService(Generic[ModelType]):
         obj = self.get(db, id)
         if obj:
             if hasattr(obj, 'deleted_at'):
-                obj.deleted_at = datetime.utcnow()
+                obj.deleted_at = datetime.now(timezone.utc)
             if hasattr(obj, 'is_active'):
                 obj.is_active = False
             db.add(obj)
