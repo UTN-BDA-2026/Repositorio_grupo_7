@@ -103,3 +103,22 @@ psycopg3
 alembic
 python-dotenv
 ```
+
+---
+
+## 6. Roadmap y Estado Actual de la Interfaz
+
+**✅ Lo que hemos implementado hasta ahora:**
+*   **Estructura Base del Dashboard:** Construcción del contenedor principal (`ui/app.py`) con CustomTkinter.
+*   **Navegación:** Menú lateral (Sidebar) preparado para conectar con las distintas vistas.
+*   **Accesibilidad y Tema:** Soporte completo nativo para **Modo Claro / Modo Oscuro** y botones de escalado de la interfaz (`A+` / `A-`).
+*   **Tarjetas de Resumen:** Área de datos elevada con colores vibrantes y de alto contraste.
+
+**⏳ Próximos pasos (Siguiente Sesión):**
+1.  **Dashboard (Continuación):** Integrar los gráficos estadísticos en el área inferior mediante Matplotlib.
+2.  **Pantalla de Autenticación:** Desarrollar la **Ventana de Login** para validar el ingreso de usuarios antes de mostrar el Dashboard.
+3.  **Vistas Modulares:** Separar y construir las pantallas individuales de:
+    *   **Ventas:** Pantalla tipo POS (Punto de Venta) para la facturación.
+    *   **Historial / Transacciones:** Tabla de registros de las ventas realizadas.
+    *   **Gestión de Productos/Inventario.**
+4.  **Conexión UI-BD:** Enlazar las vistas con SQLAlchemy y los modelos correspondientes.
