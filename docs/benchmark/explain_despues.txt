@@ -1,0 +1,133 @@
+
+==============================================================================
+# RF-1  products.barcode (escaneo de código de barra)
+------------------------------------------------------------------------------
+SELECT * FROM products WHERE barcode = %s;
+   Index Scan using ix_products_barcode on products  (cost=0.29..8.30 rows=1 width=693) (actual time=0.039..0.039 rows=1 loops=1)
+     Index Cond: ((barcode)::text = '7790000005000'::text)
+     Buffers: shared hit=1 read=2
+   Planning:
+     Buffers: shared hit=59
+   Planning Time: 0.455 ms
+   Execution Time: 0.063 ms
+
+==============================================================================
+# RF-2  sale_details.sale_id (renglones de una venta)
+------------------------------------------------------------------------------
+SELECT * FROM sale_details WHERE sale_id = %s;
+   Bitmap Heap Scan on sale_details  (cost=4.44..16.13 rows=3 width=76) (actual time=0.030..0.031 rows=3 loops=1)
+     Recheck Cond: (sale_id = 'fb0e89a9-fa30-4413-978a-63aef6f9fc13'::uuid)
+     Heap Blocks: exact=1
+     Buffers: shared hit=1 read=3
+     ->  Bitmap Index Scan on ix_sale_details_sale  (cost=0.00..4.44 rows=3 width=0) (actual time=0.025..0.025 rows=3 loops=1)
+           Index Cond: (sale_id = 'fb0e89a9-fa30-4413-978a-63aef6f9fc13'::uuid)
+           Buffers: shared read=3
+   Planning:
+     Buffers: shared hit=20
+   Planning Time: 0.172 ms
+   Execution Time: 0.052 ms
+
+==============================================================================
+# RF-3  sale_details.product_id (ventas de un producto)
+------------------------------------------------------------------------------
+SELECT * FROM sale_details WHERE product_id = %s;
+   Bitmap Heap Scan on sale_details  (cost=4.41..60.70 rows=15 width=76) (actual time=0.045..0.083 rows=15 loops=1)
+     Recheck Cond: (product_id = '2affa8c8-f101-462a-bdc9-f4530281d39a'::uuid)
+     Heap Blocks: exact=5
+     Buffers: shared hit=5 read=2
+     ->  Bitmap Index Scan on ix_sale_details_product  (cost=0.00..4.41 rows=15 width=0) (actual time=0.038..0.039 rows=15 loops=1)
+           Index Cond: (product_id = '2affa8c8-f101-462a-bdc9-f4530281d39a'::uuid)
+           Buffers: shared read=2
+   Planning Time: 0.053 ms
+   Execution Time: 0.122 ms
+
+==============================================================================
+# RF-4  sales(branch_id, created_at) (ventas de sucursal por fecha)
+------------------------------------------------------------------------------
+SELECT * FROM sales WHERE branch_id = %s AND created_at >= %s;
+   Bitmap Heap Scan on sales  (cost=56.42..782.14 rows=3915 width=126) (actual time=0.392..1.537 rows=3858 loops=1)
+     Recheck Cond: ((branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid) AND (created_at >= '2026-04-01 00:00:00'::timestamp without time zone))
+     Heap Blocks: exact=665
+     Buffers: shared hit=665 read=6
+     ->  Bitmap Index Scan on ix_sales_branch_created  (cost=0.00..55.44 rows=3915 width=0) (actual time=0.306..0.306 rows=3858 loops=1)
+           Index Cond: ((branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid) AND (created_at >= '2026-04-01 00:00:00'::timestamp without time zone))
+           Buffers: shared read=6
+   Planning:
+     Buffers: shared hit=78 read=2
+   Planning Time: 1.103 ms
+   Execution Time: 1.694 ms
+
+==============================================================================
+# RF-5  sales.client_id (historial de un cliente)
+------------------------------------------------------------------------------
+SELECT * FROM sales WHERE client_id = %s;
+   Bitmap Heap Scan on sales  (cost=4.48..90.28 rows=25 width=126) (actual time=0.053..0.075 rows=25 loops=1)
+     Recheck Cond: (client_id = '2854fc34-cc94-4eb2-af54-c78f863d8c36'::uuid)
+     Heap Blocks: exact=25
+     Buffers: shared hit=25 read=2
+     ->  Bitmap Index Scan on ix_sales_client  (cost=0.00..4.48 rows=25 width=0) (actual time=0.046..0.046 rows=25 loops=1)
+           Index Cond: (client_id = '2854fc34-cc94-4eb2-af54-c78f863d8c36'::uuid)
+           Buffers: shared read=2
+   Planning Time: 0.054 ms
+   Execution Time: 0.103 ms
+
+==============================================================================
+# RF-6  inventory_movements(product_id, created_at) (kardex)
+------------------------------------------------------------------------------
+SELECT * FROM inventory_movements WHERE product_id = %s AND created_at >= %s;
+   Index Scan using ix_inventory_movements_product_created on inventory_movements  (cost=0.29..8.31 rows=1 width=148) (actual time=0.026..0.027 rows=1 loops=1)
+     Index Cond: ((product_id = 'ed80cbbd-062b-408d-ba20-dcd093aab033'::uuid) AND (created_at >= '2026-04-01 00:00:00'::timestamp without time zone))
+     Buffers: shared hit=1 read=2
+   Planning:
+     Buffers: shared hit=27
+   Planning Time: 0.240 ms
+   Execution Time: 0.041 ms
+
+==============================================================================
+# RF-7  branch_product low-stock (índice parcial)
+------------------------------------------------------------------------------
+SELECT * FROM branch_product WHERE branch_id = %s AND stock <= alert_stock;
+   Bitmap Heap Scan on branch_product  (cost=43.56..434.56 rows=3333 width=59) (actual time=0.114..0.688 rows=975 loops=1)
+     Recheck Cond: ((branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid) AND (stock <= alert_stock))
+     Heap Blocks: exact=323
+     Buffers: shared hit=323 read=2
+     ->  Bitmap Index Scan on ix_branch_product_low_stock  (cost=0.00..42.73 rows=3333 width=0) (actual time=0.078..0.078 rows=975 loops=1)
+           Index Cond: (branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid)
+           Buffers: shared read=2
+   Planning:
+     Buffers: shared hit=37 read=1
+   Planning Time: 0.414 ms
+   Execution Time: 0.754 ms
+
+==============================================================================
+# RF-8  products.name LIKE 'prefijo%' (autocompletado)
+------------------------------------------------------------------------------
+SELECT * FROM products WHERE name LIKE %s;
+   Bitmap Heap Scan on products  (cost=5.27..165.30 rows=1 width=693) (actual time=0.064..0.092 rows=11 loops=1)
+     Filter: ((name)::text ~~ 'Producto 999%'::text)
+     Heap Blocks: exact=2
+     Buffers: shared hit=2 read=2
+     ->  Bitmap Index Scan on ix_products_name_pattern  (cost=0.00..5.27 rows=98 width=0) (actual time=0.047..0.048 rows=11 loops=1)
+           Index Cond: (((name)::text ~>=~ 'Producto 999'::text) AND ((name)::text ~<~ 'Producto 99:'::text))
+           Buffers: shared read=2
+   Planning:
+     Buffers: shared hit=37
+   Planning Time: 0.662 ms
+   Execution Time: 0.142 ms
+
+==============================================================================
+# Índices presentes en las tablas relevantes
+------------------------------------------------------------------------------
+   branch_product         ix_branch_product_low_stock
+   inventory_movements    inventory_movements_pkey
+   inventory_movements    ix_inventory_movements_product_created
+   products               ix_products_barcode
+   products               ix_products_name_pattern
+   products               products_pkey
+   products               products_sku_unique
+   sale_details           ix_sale_details_product
+   sale_details           ix_sale_details_sale
+   sale_details           sale_details_pkey
+   sales                  ix_sales_branch_created
+   sales                  ix_sales_client
+   sales                  sales_pkey

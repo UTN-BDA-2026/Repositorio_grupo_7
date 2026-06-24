@@ -78,7 +78,14 @@ def process_sale_transaction(sale_data: dict, details_data: list[dict])->dict:
 
                     if resultado_stock['stock'] < 0:
                         raise ValueError(f"Stock insuficiente para el producto {detail['product_id']}.")
-                return {"status" : "success", "sale_id": sale_id}
+
+        try:
+            from nosql.events import log_event
+            log_event("sale_confirmed", {"sale_id": str(sale_id), "total": str(sale_data["total_amount"])})
+        except Exception as e:
+            print(f"[warn] no se pudo registrar evento NoSQL: {e}")
+
+        return {"status" : "success", "sale_id": sale_id}
     except Exception as e:
         print(f"Error en venta (Rollback automático): {e}")
         raise e

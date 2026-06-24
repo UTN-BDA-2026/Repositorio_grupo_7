@@ -119,8 +119,8 @@ Además de las Claves Primarias por defecto, se agregarán índices en la base d
 ### 4. Backup & Restore (⏳ Pendiente)
 Para facilitar la administración del sistema, se integrará una función de copias de seguridad directamente en la Interfaz Gráfica. El usuario administrador podrá generar un volcado de la base de datos con un solo clic.
 
-### 5. Transacciones Avanzadas (⏳ Pendiente)
-Para los procesos críticos, se optará por el enfoque "Sin ORM". Se ejecutará código SQL nativo para poder controlar manualmente la Transacción y garantizar que el registro del ticket y el descuento de stock ocurran como un bloque atómico (usando `ROLLBACK` ante fallas).
+### 5. Transacciones Avanzadas (✅ Listo)
+Para los procesos críticos, se optó por el enfoque "Sin ORM". Se ejecuta código SQL nativo para poder controlar manualmente la Transacción y garantizar que el registro del ticket y el descuento de stock ocurran como un bloque atómico (usando `ROLLBACK` ante fallas).
 
 ### 6. Arquitectura de Interfaz Monolítica (✅ Decidido)
 Para la presentación del sistema, se optó por una aplicación de escritorio utilizando **CustomTkinter**. Al integrar directamente los servicios de la base de datos con la interfaz visual, nos ahorramos la necesidad de crear y mantener APIs complejas (como FastAPI).

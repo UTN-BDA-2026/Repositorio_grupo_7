@@ -12,3 +12,18 @@ services:
       - ./postgres_data:/var/lib/postgresql/data
     ports:
       - "5438:5432"
+
+  mongo:
+    image: mongo:7
+    container_name: bda_mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin1234}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-dba_final_logs}
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27018:27017"
+
+volumes:
+  mongo_data:
