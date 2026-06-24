@@ -13,13 +13,23 @@
 
 
 import uuid
-from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Text, CheckConstraint, func
+from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Text, CheckConstraint, func, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from database.db import Base
 
 class Sale(Base):
     __tablename__ = "sales"
+
+    # SPEC-01 — Índices estratégicos:
+    #  - (branch_id, created_at): reporte estrella -> ventas de una sucursal en un
+    #    rango de fechas. El orden de columnas importa (filtra por sucursal y luego
+    #    acota por fecha).
+    #  - client_id: historial / cuenta corriente de un cliente (FK sin índice).
+    __table_args__ = (
+        Index("ix_sales_branch_created", "branch_id", "created_at"),
+        Index("ix_sales_client", "client_id"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id", ondelete="SET NULL"), nullable=True)

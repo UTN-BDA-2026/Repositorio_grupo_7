@@ -1,0 +1,107 @@
+
+==============================================================================
+# RF-1  products.barcode (escaneo de código de barra)
+------------------------------------------------------------------------------
+SELECT * FROM products WHERE barcode = %s;
+   Seq Scan on products  (cost=0.00..307.00 rows=1 width=693) (actual time=0.728..1.442 rows=1 loops=1)
+     Filter: ((barcode)::text = '7790000005000'::text)
+     Rows Removed by Filter: 9999
+     Buffers: shared hit=182
+   Planning:
+     Buffers: shared hit=51
+   Planning Time: 0.585 ms
+   Execution Time: 1.464 ms
+
+==============================================================================
+# RF-2  sale_details.sale_id (renglones de una venta)
+------------------------------------------------------------------------------
+SELECT * FROM sale_details WHERE sale_id = %s;
+   Seq Scan on sale_details  (cost=0.00..3875.00 rows=3 width=76) (actual time=0.011..18.163 rows=3 loops=1)
+     Filter: (sale_id = 'fb0e89a9-fa30-4413-978a-63aef6f9fc13'::uuid)
+     Rows Removed by Filter: 149997
+     Buffers: shared hit=2000
+   Planning:
+     Buffers: shared hit=18
+   Planning Time: 0.382 ms
+   Execution Time: 18.183 ms
+
+==============================================================================
+# RF-3  sale_details.product_id (ventas de un producto)
+------------------------------------------------------------------------------
+SELECT * FROM sale_details WHERE product_id = %s;
+   Seq Scan on sale_details  (cost=0.00..3875.00 rows=15 width=76) (actual time=0.015..16.234 rows=15 loops=1)
+     Filter: (product_id = '2affa8c8-f101-462a-bdc9-f4530281d39a'::uuid)
+     Rows Removed by Filter: 149985
+     Buffers: shared hit=2000
+   Planning Time: 0.076 ms
+   Execution Time: 16.264 ms
+
+==============================================================================
+# RF-4  sales(branch_id, created_at) (ventas de sucursal por fecha)
+------------------------------------------------------------------------------
+SELECT * FROM sales WHERE branch_id = %s AND created_at >= %s;
+   Seq Scan on sales  (cost=0.00..1417.00 rows=3882 width=126) (actual time=0.019..8.383 rows=3858 loops=1)
+     Filter: ((created_at >= '2026-04-01 00:00:00'::timestamp without time zone) AND (branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid))
+     Rows Removed by Filter: 46142
+     Buffers: shared hit=667
+   Planning:
+     Buffers: shared hit=53
+   Planning Time: 1.025 ms
+   Execution Time: 8.657 ms
+
+==============================================================================
+# RF-5  sales.client_id (historial de un cliente)
+------------------------------------------------------------------------------
+SELECT * FROM sales WHERE client_id = %s;
+   Seq Scan on sales  (cost=0.00..1292.00 rows=25 width=126) (actual time=0.223..5.741 rows=25 loops=1)
+     Filter: (client_id = '2854fc34-cc94-4eb2-af54-c78f863d8c36'::uuid)
+     Rows Removed by Filter: 49975
+     Buffers: shared hit=667
+   Planning Time: 0.090 ms
+   Execution Time: 5.773 ms
+
+==============================================================================
+# RF-6  inventory_movements(product_id, created_at) (kardex)
+------------------------------------------------------------------------------
+SELECT * FROM inventory_movements WHERE product_id = %s AND created_at >= %s;
+   Seq Scan on inventory_movements  (cost=0.00..912.00 rows=1 width=148) (actual time=0.549..4.572 rows=1 loops=1)
+     Filter: ((created_at >= '2026-04-01 00:00:00'::timestamp without time zone) AND (product_id = 'ed80cbbd-062b-408d-ba20-dcd093aab033'::uuid))
+     Rows Removed by Filter: 29999
+     Buffers: shared hit=462
+   Planning:
+     Buffers: shared hit=27
+   Planning Time: 1.207 ms
+   Execution Time: 4.618 ms
+
+==============================================================================
+# RF-7  branch_product low-stock (índice parcial)
+------------------------------------------------------------------------------
+SELECT * FROM branch_product WHERE branch_id = %s AND stock <= alert_stock;
+   Seq Scan on branch_product  (cost=0.00..791.00 rows=3333 width=59) (actual time=0.043..6.594 rows=975 loops=1)
+     Filter: ((stock <= alert_stock) AND (branch_id = '2353e4c2-265d-49a2-8a58-303adddbed4d'::uuid))
+     Rows Removed by Filter: 29025
+     Buffers: shared hit=341
+   Planning:
+     Buffers: shared hit=22
+   Planning Time: 0.343 ms
+   Execution Time: 6.677 ms
+
+==============================================================================
+# RF-8  products.name LIKE 'prefijo%' (autocompletado)
+------------------------------------------------------------------------------
+SELECT * FROM products WHERE name LIKE %s;
+   Seq Scan on products  (cost=0.00..307.00 rows=1 width=693) (actual time=0.197..2.018 rows=11 loops=1)
+     Filter: ((name)::text ~~ 'Producto 999%'::text)
+     Rows Removed by Filter: 9989
+     Buffers: shared hit=182
+   Planning Time: 0.144 ms
+   Execution Time: 2.038 ms
+
+==============================================================================
+# Índices presentes en las tablas relevantes
+------------------------------------------------------------------------------
+   inventory_movements    inventory_movements_pkey
+   products               products_pkey
+   products               products_sku_unique
+   sale_details           sale_details_pkey
+   sales                  sales_pkey
