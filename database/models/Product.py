@@ -24,13 +24,24 @@ import uuid
 
 from sqlalchemy.orm import relationship
 from database.db import Base
-from sqlalchemy import Column, String, Numeric, Boolean, func, ForeignKey, Text, DateTime
+from sqlalchemy import Column, String, Numeric, Boolean, func, ForeignKey, Text, DateTime, Index
 from sqlalchemy.dialects.postgresql import UUID
 
 
 class Product(Base):
     __tablename__ = "products"
-    
+
+    # SPEC-01 — Índices estratégicos:
+    #  - barcode: el escaneo de código de barra es la operación más frecuente del
+    #    POS y `barcode` NO es UNIQUE (no tiene índice por defecto).
+    #  - name (varchar_pattern_ops): habilita usar el índice en LIKE 'prefijo%'
+    #    para el autocompletado de búsqueda de productos en la UI.
+    __table_args__ = (
+        Index("ix_products_barcode", "barcode"),
+        Index("ix_products_name_pattern", "name",
+              postgresql_ops={"name": "varchar_pattern_ops"}),
+    )
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     description = Column(Text)

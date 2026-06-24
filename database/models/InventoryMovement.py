@@ -14,12 +14,20 @@
 
 import uuid
 
-from sqlalchemy import UUID, Column, DateTime, Integer, String, Text, func, ForeignKey
+from sqlalchemy import UUID, Column, DateTime, Integer, String, Text, func, ForeignKey, Index
 
 from database.db import Base
 
 class InventoryMovement(Base):
     __tablename__ = "inventory_movements"
+
+    # SPEC-01 — Índice estratégico:
+    #  - (product_id, created_at): kardex / trazabilidad del stock de un producto
+    #    a lo largo del tiempo.
+    __table_args__ = (
+        Index("ix_inventory_movements_product_created", "product_id", "created_at"),
+    )
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
     branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False)
