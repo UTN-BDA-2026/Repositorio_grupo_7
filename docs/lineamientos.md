@@ -112,13 +112,15 @@ python-dotenv
 *   **Estructura Base del Dashboard:** Construcción del contenedor principal (`ui/app.py`) con CustomTkinter.
 *   **Navegación:** Menú lateral (Sidebar) preparado para conectar con las distintas vistas.
 *   **Accesibilidad y Tema:** Soporte completo nativo para **Modo Claro / Modo Oscuro** y botones de escalado de la interfaz (`A+` / `A-`).
-*   **Tarjetas de Resumen:** Área de datos elevada con colores vibrantes y de alto contraste.
+*   **Tarjetas de Resumen Dinámicas:** Creado el componente parametrizable y libre de código duro `StatCard` (`ui/components/stat_card.py`).
+*   **Arquitectura Desacoplada (Shell + Vista):** Mapeado del Dashboard a su propia vista modular (`ui/views/dashboard_view.py`), separando su lógica de la ventana principal (`app.py`).
+*   **Conexión Real con Servicios:** Conexión de las tarjetas a la base de datos a través de la capa de servicios (`BaseService.count()`) usando un context manager limpio (`get_db`).
 
 **⏳ Próximos pasos (Siguiente Sesión):**
 1.  **Dashboard (Continuación):** Integrar los gráficos estadísticos en el área inferior mediante Matplotlib.
 2.  **Pantalla de Autenticación:** Desarrollar la **Ventana de Login** para validar el ingreso de usuarios antes de mostrar el Dashboard.
-3.  **Vistas Modulares:** Separar y construir las pantallas individuales de:
+3.  **Vistas Modulares:** Construir las pantallas individuales de:
     *   **Ventas:** Pantalla tipo POS (Punto de Venta) para la facturación.
     *   **Historial / Transacciones:** Tabla de registros de las ventas realizadas.
     *   **Gestión de Productos/Inventario.**
-4.  **Conexión UI-BD:** Enlazar las vistas con SQLAlchemy y los modelos correspondientes.
+4.  **Conexión UI-BD:** Enlazar las nuevas vistas con SQLAlchemy a través de los servicios correspondientes.

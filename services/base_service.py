@@ -44,3 +44,6 @@ class BaseService(Generic[ModelType]):
             db.commit()
             db.refresh(obj)
         return obj
+
+    def count(self, db:Session) -> int:
+        return db.query(self.model).count()
