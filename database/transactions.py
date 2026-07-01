@@ -81,7 +81,14 @@ def process_sale_transaction(sale_data: dict, details_data: list[dict])->dict:
 
         try:
             from nosql.events import log_event
-            log_event("sale_confirmed", {"sale_id": str(sale_id), "total": str(sale_data["total_amount"])})
+            log_event("sale_confirmed", {
+                "sale_id": str(sale_id),
+                "total": float(sale_data["total_amount"]),
+                "branch_id": str(sale_data.get("branch_id", "")),
+                "user_id": str(sale_data.get("user_id", "")),
+                "client_id": str(sale_data.get("client_id", "")),
+                "items_count": sum(d.get("quantity", 1) for d in details_data)
+            })
         except Exception as e:
             print(f"[warn] no se pudo registrar evento NoSQL: {e}")
 
@@ -147,7 +154,14 @@ def process_purchase_transaction(purchase_data: dict, details_data: list[dict]) 
 
         try:
             from nosql.events import log_event
-            log_event("purchase_confirmed", {"purchase_id": str(purchase_id), "total": str(purchase_data["total_amount"])})
+            log_event("purchase_confirmed", {
+                "purchase_id": str(purchase_id),
+                "total": float(purchase_data["total_amount"]),
+                "branch_id": str(purchase_data.get("branch_id", "")),
+                "user_id": str(purchase_data.get("user_id", "")),
+                "supplier_id": str(purchase_data.get("supplier_id", "")),
+                "items_count": sum(d.get("quantity", 1) for d in details_data)
+            })
         except Exception as e:
             print(f"[warn] no se pudo registrar evento NoSQL: {e}")
 

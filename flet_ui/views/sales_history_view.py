@@ -12,12 +12,6 @@ class SalesHistoryView(ft.Container):
         self.selected_sale = None
 
         btn_shape = ft.RoundedRectangleBorder(radius=5)
-        self.btn_view = ft.ElevatedButton(
-            "👁 Ver Detalle",
-            on_click=lambda e: self.view_selected(self.selected_sale),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
-        )
 
         self.table = PaginatedTable(
             columns=[
@@ -37,7 +31,7 @@ class SalesHistoryView(ft.Container):
             [
                 ft.Text("🧾 Historial de Ventas", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_view],
+                    [],
                     alignment=ft.MainAxisAlignment.END
                 ),
                 ft.Divider(height=5, color="transparent"),
@@ -52,7 +46,6 @@ class SalesHistoryView(ft.Container):
 
     def _on_row_selected(self, sale):
         self.selected_sale = sale
-        self.btn_view.disabled = sale is None
         self.update()
 
     def _build_sale_cells(self, sale):

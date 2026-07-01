@@ -17,22 +17,7 @@ class SuppliersView(ft.Container):
             "Agregar",
             icon=ft.icons.Icons.ADD_ROUNDED,
             on_click=self.open_form_modal,
-            style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
-        )
-        self.btn_view = ft.ElevatedButton(
-            "Ver Seleccionado",
-            icon=ft.icons.Icons.VISIBILITY_ROUNDED,
-            on_click=lambda e: self.view_selected(self.selected_supplier),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
-        )
-        self.btn_delete = ft.ElevatedButton(
-            "Eliminar Seleccionado",
-            icon=ft.icons.Icons.DELETE_ROUNDED,
-            on_click=lambda e: self.confirm_delete(self.selected_supplier.id),
-            disabled=True,
-            color="red",
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
         self.table = PaginatedTable(
@@ -60,7 +45,7 @@ class SuppliersView(ft.Container):
                     spacing=10
                 ),
                 ft.Row(
-                    [self.btn_add, self.btn_view, self.btn_delete],
+                    [self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
                     spacing=10
                 ),
@@ -77,8 +62,6 @@ class SuppliersView(ft.Container):
     def _on_row_selected(self, supplier):
         self.selected_supplier = supplier
         has_selection = supplier is not None
-        self.btn_view.disabled = not has_selection
-        self.btn_delete.disabled = not has_selection
         self.update()
 
     def _build_supplier_cells(self, supplier):
@@ -221,8 +204,6 @@ class SuppliersView(ft.Container):
                 supplier_service.soft_delete(db, supplier_id)
             self.page.pop_dialog()
             self.selected_supplier = None
-            self.btn_view.disabled = True
-            self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(

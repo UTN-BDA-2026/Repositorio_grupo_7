@@ -15,7 +15,7 @@
 # );
 
 import uuid
-from sqlalchemy import Column, String, DateTime, func, ForeignKey
+from sqlalchemy import Column, String, DateTime, func, ForeignKey, JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from database.db import Base
@@ -30,6 +30,7 @@ class User(Base):
     password = Column(String(255), nullable=False)
     branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id", ondelete="SET NULL"), nullable=True)
     pos_pin = Column(String(255), nullable=True)
+    permissions = Column(JSON, default=dict)
     remember_token = Column(String(100))
     
     created_at = Column(DateTime, server_default=func.now())

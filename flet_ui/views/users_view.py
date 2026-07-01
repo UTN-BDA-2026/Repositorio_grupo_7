@@ -18,22 +18,7 @@ class UsersView(ft.Container):
             "Agregar",
             icon=ft.icons.Icons.ADD_ROUNDED,
             on_click=self.open_form_modal,
-            style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
-        )
-        self.btn_view = ft.ElevatedButton(
-            "Ver Seleccionado",
-            icon=ft.icons.Icons.VISIBILITY_ROUNDED,
-            on_click=lambda e: self.view_selected(self.selected_user),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
-        )
-        self.btn_delete = ft.ElevatedButton(
-            "Eliminar Seleccionado",
-            icon=ft.icons.Icons.DELETE_ROUNDED,
-            on_click=lambda e: self.confirm_delete(self.selected_user.id),
-            disabled=True,
-            color="red",
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
         self.table = PaginatedTable(
@@ -61,7 +46,7 @@ class UsersView(ft.Container):
                     spacing=10
                 ),
                 ft.Row(
-                    [self.btn_add, self.btn_view, self.btn_delete],
+                    [self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
                     spacing=10
                 ),
@@ -78,8 +63,6 @@ class UsersView(ft.Container):
     def _on_row_selected(self, user):
         self.selected_user = user
         has_selection = user is not None
-        self.btn_view.disabled = not has_selection
-        self.btn_delete.disabled = not has_selection
         self.update()
 
     def _build_user_cells(self, user):
@@ -138,9 +121,11 @@ class UsersView(ft.Container):
     def open_form_modal(self, e, user_id=None):
         user = None
         branches = []
+        perms = {}
         with get_db() as db:
             if user_id:
                 user = user_service.get(db, user_id)
+                perms = user.permissions or {}
             branches = branch_service.get_all(db, limit=100)
 
         txt_name = ft.TextField(
@@ -170,6 +155,28 @@ class UsersView(ft.Container):
             options=branch_options,
             value=str(user.branch_id) if user and user.branch_id else ""
         )
+        
+        # Seccion de permisos
+        chk_can_edit_clients = ft.Checkbox(
+            label="Puede crear y editar clientes",
+            value=perms.get("can_edit_clients", True)
+        )
+        chk_can_delete_clients = ft.Checkbox(
+            label="Puede eliminar clientes",
+            value=perms.get("can_delete_clients", False)
+        )
+
+        perm_container = ft.Column([
+            ft.Text("Permisos Adicionales", weight="bold"),
+            chk_can_edit_clients,
+            chk_can_delete_clients
+        ], visible=(dd_branch.value != ""))
+
+        def on_branch_change(e3):
+            perm_container.visible = dd_branch.value != ""
+            self.update()
+            
+        dd_branch.on_change = on_branch_change
 
         def save_user(e2):
             val_name = (txt_name.value or "").strip()
@@ -194,6 +201,10 @@ class UsersView(ft.Container):
                 "email": val_email,
                 "branch_id": dd_branch.value if dd_branch.value else None,
                 "pos_pin": (txt_pos_pin.value or "").strip() or None,
+                "permissions": {
+                    "can_edit_clients": chk_can_edit_clients.value,
+                    "can_delete_clients": chk_can_delete_clients.value
+                }
             }
             if val_pass:
                 user_data["password"] = val_pass
@@ -221,7 +232,8 @@ class UsersView(ft.Container):
                     txt_email,
                     txt_password,
                     txt_pos_pin,
-                    dd_branch
+                    dd_branch,
+                    perm_container
                 ],
                 tight=True,
                 spacing=15
@@ -251,8 +263,6 @@ class UsersView(ft.Container):
                 user_service.soft_delete(db, user_id)
             self.page.pop_dialog()
             self.selected_user = None
-            self.btn_view.disabled = True
-            self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(

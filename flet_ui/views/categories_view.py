@@ -16,20 +16,7 @@ class CategoriesView(ft.Container):
         self.btn_add = ft.FilledButton(
             "➕ Agregar",
             on_click=self.open_form_modal,
-            style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
-        )
-        self.btn_view = ft.ElevatedButton(
-            "👁 Ver Seleccionado",
-            on_click=lambda e: self.view_selected(self.selected_category),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
-        )
-        self.btn_delete = ft.ElevatedButton(
-            "🗑 Eliminar Seleccionado",
-            on_click=lambda e: self.confirm_delete(self.selected_category.id),
-            disabled=True,
-            color="red",
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
         self.table = PaginatedTable(
@@ -50,7 +37,7 @@ class CategoriesView(ft.Container):
             [
                 ft.Text("🗂 Administración de Categorías", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add, self.btn_view, self.btn_delete],
+                    [self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
                     spacing=10
                 ),
@@ -67,8 +54,6 @@ class CategoriesView(ft.Container):
     def _on_row_selected(self, category):
         self.selected_category = category
         has_selection = category is not None
-        self.btn_view.disabled = not has_selection
-        self.btn_delete.disabled = not has_selection
         self.update()
 
     def _build_category_cells(self, category):
@@ -190,8 +175,6 @@ class CategoriesView(ft.Container):
                 category_service.soft_delete(db, category_id)
             self.page.pop_dialog()
             self.selected_category = None
-            self.btn_view.disabled = True
-            self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(

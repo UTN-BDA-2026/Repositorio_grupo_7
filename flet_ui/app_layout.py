@@ -33,14 +33,21 @@ class AppLayout(ft.Row):
             "brands": ("Marcas", ft.icons.Icons.LABEL_ROUNDED, self.show_brands),
             "taxes": ("Impuestos", ft.icons.Icons.PERCENT_ROUNDED, self.show_taxes),
             "users": ("Usuarios", ft.icons.Icons.MANAGE_ACCOUNTS_ROUNDED, self.show_users),
+            "audit": ("Auditoría", ft.icons.Icons.HISTORY_ROUNDED, self.show_audit),
         }
 
         self._nav_buttons = {}
         nav_main = []
         nav_config = []
 
-        main_keys = ["dashboard", "pos", "purchases", "sales", "clients", "suppliers", "products"]
-        config_keys = ["users", "categories", "brands", "taxes"]
+        if self.current_user and self.current_user.branch_id:
+            # Es Cajero
+            main_keys = ["dashboard", "pos", "sales", "clients"]
+            config_keys = []
+        else:
+            # Es Admin
+            main_keys = ["dashboard", "pos", "purchases", "sales", "clients", "suppliers", "products"]
+            config_keys = ["users", "categories", "brands", "taxes", "audit"]
 
         for key in main_keys:
             btn = self._build_nav_button(key)
@@ -120,7 +127,7 @@ class AppLayout(ft.Row):
                         padding=ft.Padding(left=12, top=0, right=0, bottom=8),
                     ),
                     *nav_main,
-                    ft.Container(height=15),
+                    ft.Container(height=15) if nav_config else ft.Container(),
                     ft.Container(
                         content=ft.Text(
                             "CONFIGURACIÓN",
@@ -129,7 +136,7 @@ class AppLayout(ft.Row):
                             color="white38",
                         ),
                         padding=ft.Padding(left=12, top=0, right=0, bottom=8),
-                    ),
+                    ) if nav_config else ft.Container(),
                     *nav_config,
                 ],
                 spacing=2,
@@ -235,7 +242,7 @@ class AppLayout(ft.Row):
 
     def show_clients(self, e=None):
         from flet_ui.views.clients_view import ClientsView
-        self.active_view.content = ClientsView()
+        self.active_view.content = ClientsView(current_user=self.current_user)
         self._page.update()
 
     def show_suppliers(self, e=None):
@@ -281,6 +288,11 @@ class AppLayout(ft.Row):
     def show_users(self, e=None):
         from flet_ui.views.users_view import UsersView
         self.active_view.content = UsersView()
+        self._page.update()
+
+    def show_audit(self, e=None):
+        from flet_ui.views.audit_view import AuditView
+        self.active_view.content = AuditView()
         self._page.update()
 
 

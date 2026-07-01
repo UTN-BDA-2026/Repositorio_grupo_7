@@ -5,31 +5,34 @@ from flet_ui.components.paginated_table import PaginatedTable
 
 
 class ClientsView(ft.Container):
-    def __init__(self):
+    def __init__(self, current_user=None):
         super().__init__()
+        self.current_user = current_user
         self.expand = True
         self.padding = 30
-        self.primary_color = "#6200ee"
+        self.primary_color = "#2ecc71"
         self.selected_client = None
+        
+        # Evaluar Permisos
+        self.is_admin = self.current_user.branch_id is None if self.current_user else True
+        self.perms = self.current_user.permissions or {} if self.current_user else {}
+        self.can_delete = self.is_admin or self.perms.get("can_delete_clients", False)
+        self.can_edit = self.is_admin or self.perms.get("can_edit_clients", True) # Edit allowed by default for cashiers if not specified
 
         btn_shape = ft.RoundedRectangleBorder(radius=5)
         self.btn_add = ft.FilledButton(
             "➕ Agregar",
             on_click=self.open_form_modal,
-            style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
-        )
-        self.btn_view = ft.ElevatedButton(
-            "👁 Ver Seleccionado",
-            on_click=lambda e: self.view_selected(self.selected_client),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
         self.btn_delete = ft.ElevatedButton(
-            "🗑 Eliminar Seleccionado",
+            "Eliminar Seleccionado",
+            icon=ft.icons.Icons.DELETE_ROUNDED,
             on_click=lambda e: self.confirm_delete(self.selected_client.id),
             disabled=True,
             color="red",
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(shape=btn_shape),
+            visible=self.can_delete
         )
 
         self.table = PaginatedTable(
@@ -52,7 +55,7 @@ class ClientsView(ft.Container):
             [
                 ft.Text("👥 Administración de Clientes", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add, self.btn_view, self.btn_delete],
+                    [self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
                     spacing=10
                 ),
@@ -69,8 +72,8 @@ class ClientsView(ft.Container):
     def _on_row_selected(self, client):
         self.selected_client = client
         has_selection = client is not None
-        self.btn_view.disabled = not has_selection
-        self.btn_delete.disabled = not has_selection
+        if self.can_delete:
+            pass
         self.update()
 
     def _build_client_cells(self, client):
@@ -83,16 +86,18 @@ class ClientsView(ft.Container):
             ft.DataCell(
                 ft.Row([
                     ft.IconButton(
-                        icon=ft.icons.Icons.EDIT,
+                        icon=ft.icons.Icons.EDIT_ROUNDED,
                         icon_color="blue",
                         tooltip="Editar",
-                        on_click=lambda e, c=client: self.open_form_modal(e, c.id)
+                        on_click=lambda e, c=client: self.open_form_modal(e, c.id),
+                        visible=self.can_edit
                     ),
                     ft.IconButton(
-                        icon=ft.icons.Icons.DELETE,
+                        icon=ft.icons.Icons.DELETE_ROUNDED,
                         icon_color="red",
                         tooltip="Eliminar",
-                        on_click=lambda e, c=client: self.confirm_delete(c.id)
+                        on_click=lambda e, c=client: self.confirm_delete(c.id),
+                        visible=self.can_delete
                     ),
                 ])
             ),
@@ -216,8 +221,6 @@ class ClientsView(ft.Container):
                 client_service.soft_delete(db, client_id)
             self.page.pop_dialog()
             self.selected_client = None
-            self.btn_view.disabled = True
-            self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(

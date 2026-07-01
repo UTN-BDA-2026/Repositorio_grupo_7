@@ -16,20 +16,7 @@ class BrandsView(ft.Container):
         self.btn_add = ft.FilledButton(
             "➕ Agregar",
             on_click=self.open_form_modal,
-            style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
-        )
-        self.btn_view = ft.ElevatedButton(
-            "👁 Ver Seleccionado",
-            on_click=lambda e: self.view_selected(self.selected_brand),
-            disabled=True,
-            style=ft.ButtonStyle(shape=btn_shape)
-        )
-        self.btn_delete = ft.ElevatedButton(
-            "🗑 Eliminar Seleccionado",
-            on_click=lambda e: self.confirm_delete(self.selected_brand.id),
-            disabled=True,
-            color="red",
-            style=ft.ButtonStyle(shape=btn_shape)
+            style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
         self.table = PaginatedTable(
@@ -51,7 +38,7 @@ class BrandsView(ft.Container):
             [
                 ft.Text("🏷 Administración de Marcas", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add, self.btn_view, self.btn_delete],
+                    [self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
                     spacing=10
                 ),
@@ -68,8 +55,6 @@ class BrandsView(ft.Container):
     def _on_row_selected(self, brand):
         self.selected_brand = brand
         has_selection = brand is not None
-        self.btn_view.disabled = not has_selection
-        self.btn_delete.disabled = not has_selection
         self.update()
 
     def _build_brand_cells(self, brand):
@@ -207,8 +192,6 @@ class BrandsView(ft.Container):
                 brand_service.soft_delete(db, brand_id)
             self.page.pop_dialog()
             self.selected_brand = None
-            self.btn_view.disabled = True
-            self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(
