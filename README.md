@@ -14,7 +14,7 @@ Aplicación de escritorio para la gestión de ventas, inventario y sucursales. T
 ## 🏗️ Arquitectura
 
 *   **Lenguaje:** Python 3.x
-*   **Interfaz Gráfica:** CustomTkinter
+*   **Interfaz Gráfica:** Flet
 *   **Motor de Base de Datos:** PostgreSQL 17 (vía Docker)
 *   **ORM:** SQLAlchemy (modo sincrónico)
 *   **Migraciones:** Alembic
@@ -112,6 +112,7 @@ Se implementó toda la capa de acceso a datos utilizando **SQLAlchemy (ORM)** me
 La seguridad del sistema está cubierta desde la base estructural:
 *   **Archivos `.env`:** Ninguna contraseña ni dato sensible está guardado en el código fuente. Todo se lee a través de variables de entorno locales.
 *   **Prevención de Inyección SQL:** Gracias al uso de SQLAlchemy, todas las entradas de datos que haga el usuario son filtradas y sanitizadas.
+*   **Hashing de Contraseñas:** Las contraseñas de los usuarios se encriptan con `bcrypt` garantizando máxima seguridad en la persistencia.
 
 ### 3. Índices Estratégicos (⏳ Pendiente)
 Además de las Claves Primarias por defecto, se agregarán índices en la base de datos para asegurar el máximo rendimiento. Se colocarán estratégicamente en aquellas columnas que la interfaz utilizará para búsquedas frecuentes (ej: DNI en Clientes o el SKU en Productos).
@@ -123,7 +124,7 @@ Para facilitar la administración del sistema, se integrará una función de cop
 Para los procesos críticos, se optó por el enfoque "Sin ORM". Se ejecuta código SQL nativo para poder controlar manualmente la Transacción y garantizar que el registro del ticket y el descuento de stock ocurran como un bloque atómico (usando `ROLLBACK` ante fallas).
 
 ### 6. Arquitectura de Interfaz Monolítica (✅ Decidido)
-Para la presentación del sistema, se optó por una aplicación de escritorio utilizando **CustomTkinter**. Al integrar directamente los servicios de la base de datos con la interfaz visual, nos ahorramos la necesidad de crear y mantener APIs complejas (como FastAPI).
+Para la presentación del sistema, se optó por una aplicación de escritorio utilizando **Flet**. Al integrar directamente los servicios de la base de datos con la interfaz visual, nos ahorramos la necesidad de crear y mantener APIs complejas (como FastAPI).
 
 ---
 

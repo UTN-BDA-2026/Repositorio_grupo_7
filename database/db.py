@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
@@ -16,12 +17,14 @@ if not all([DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME]):
 
 DATABASE_URL = f"postgresql+psycopg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(DATABASE_URL, echo=True)
+DB_SSLMODE = os.getenv("DB_SSLMODE", "prefer")
+engine = create_engine(DATABASE_URL, echo=True, connect_args={"sslmode": DB_SSLMODE})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+@contextmanager
 def get_db():
     db = SessionLocal()
     try:

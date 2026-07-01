@@ -96,12 +96,12 @@ de BD se hacen en handlers de botones; los errores se muestran en un diálogo/la
 
 ## 8. Criterios de aceptación (Definition of Done)
 
-- [ ] `python main.py` abre la app sin errores.
+- [x] `python main.py` abre la app sin errores.
 - [ ] Se puede **registrar una venta completa** desde la UI y queda en la BD (verificable en psql).
 - [ ] Una venta con stock insuficiente muestra error y no deja registro parcial.
 - [ ] Productos y clientes se pueden listar y crear desde la UI.
 - [ ] El historial muestra las ventas registradas.
-- [ ] La UI no contiene SQL embebido (solo usa `services/` y `transactions.py`).
+- [x] La UI no contiene SQL embebido (solo usa `services/` y `transactions.py`).
 - [ ] `docs/ui.md` con capturas. PR aprobado.
 
 ## 9. Plan de verificación
