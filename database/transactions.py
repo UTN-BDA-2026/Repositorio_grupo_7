@@ -91,3 +91,70 @@ def process_sale_transaction(sale_data: dict, details_data: list[dict])->dict:
         raise e
     finally:
         conn.close()
+
+
+def process_purchase_transaction(purchase_data: dict, details_data: list[dict]) -> dict:
+    """Procesa una compra completa en forma atómica (incrementando el stock)"""
+    conn = get_native_connection()
+
+    try:
+        with conn.transaction():
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    INSERT INTO purchases(
+                        id, branch_id, user_id, supplier_id, total_amount, 
+                        status, created_at, updated_at
+                    )
+                    VALUES(
+                        gen_random_uuid(), %(branch_id)s, %(user_id)s, %(supplier_id)s,
+                        %(total_amount)s, 'completed', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                    ) RETURNING id;
+                    """,
+                    purchase_data
+                )
+                purchase_id = cur.fetchone()['id']
+
+                for detail in details_data:
+                    detail['purchase_id'] = purchase_id
+                    detail['branch_id'] = purchase_data['branch_id']
+
+                    cur.execute(
+                        """
+                        INSERT INTO purchase_details(
+                            id, purchase_id, product_id, quantity, unit_cost,
+                            created_at, updated_at
+                        ) VALUES (
+                            gen_random_uuid(), %(purchase_id)s, %(product_id)s,
+                            %(quantity)s, %(unit_cost)s,
+                            CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                        );
+                        """,
+                        detail
+                    )
+
+                    cur.execute(
+                        """
+                        INSERT INTO branch_product (branch_id, product_id, stock, alert_stock, created_at, updated_at)
+                        VALUES (%(branch_id)s, %(product_id)s, %(quantity)s, 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        ON CONFLICT (branch_id, product_id) DO UPDATE
+                        SET stock = branch_product.stock + EXCLUDED.stock,
+                            updated_at = CURRENT_TIMESTAMP;
+                        """,
+                        detail
+                    )
+
+        try:
+            from nosql.events import log_event
+            log_event("purchase_confirmed", {"purchase_id": str(purchase_id), "total": str(purchase_data["total_amount"])})
+        except Exception as e:
+            print(f"[warn] no se pudo registrar evento NoSQL: {e}")
+
+        return {"status": "success", "purchase_id": purchase_id}
+    except Exception as e:
+        print(f"Error en compra (Rollback automático): {e}")
+        raise e
+    finally:
+        conn.close()
+

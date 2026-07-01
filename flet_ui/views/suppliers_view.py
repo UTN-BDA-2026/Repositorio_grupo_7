@@ -1,32 +1,35 @@
 import flet as ft
-from services import client_service
+from services.supplier_service import supplier_service
 from database.db import get_db
 from flet_ui.components.paginated_table import PaginatedTable
 
 
-class ClientsView(ft.Container):
+class SuppliersView(ft.Container):
     def __init__(self):
         super().__init__()
         self.expand = True
         self.padding = 30
-        self.primary_color = "#6200ee"
-        self.selected_client = None
+        self.primary_color = "#e74c3c"
+        self.selected_supplier = None
 
         btn_shape = ft.RoundedRectangleBorder(radius=5)
         self.btn_add = ft.FilledButton(
-            "➕ Agregar",
+            "Agregar",
+            icon=ft.icons.Icons.ADD_ROUNDED,
             on_click=self.open_form_modal,
             style=ft.ButtonStyle(bgcolor=self.primary_color, color="white", shape=btn_shape)
         )
         self.btn_view = ft.ElevatedButton(
-            "👁 Ver Seleccionado",
-            on_click=lambda e: self.view_selected(self.selected_client),
+            "Ver Seleccionado",
+            icon=ft.icons.Icons.VISIBILITY_ROUNDED,
+            on_click=lambda e: self.view_selected(self.selected_supplier),
             disabled=True,
             style=ft.ButtonStyle(shape=btn_shape)
         )
         self.btn_delete = ft.ElevatedButton(
-            "🗑 Eliminar Seleccionado",
-            on_click=lambda e: self.confirm_delete(self.selected_client.id),
+            "Eliminar Seleccionado",
+            icon=ft.icons.Icons.DELETE_ROUNDED,
+            on_click=lambda e: self.confirm_delete(self.selected_supplier.id),
             disabled=True,
             color="red",
             style=ft.ButtonStyle(shape=btn_shape)
@@ -35,14 +38,13 @@ class ClientsView(ft.Container):
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
-                ft.DataColumn(ft.Text("Tipo Doc.")),
-                ft.DataColumn(ft.Text("Nro. Documento")),
+                ft.DataColumn(ft.Text("CUIT/NIT")),
                 ft.DataColumn(ft.Text("Email")),
                 ft.DataColumn(ft.Text("Teléfono")),
                 ft.DataColumn(ft.Text("Acciones")),
             ],
-            fetch_data_callback=self._fetch_clients,
-            build_cells_callback=self._build_client_cells,
+            fetch_data_callback=self._fetch_suppliers,
+            build_cells_callback=self._build_supplier_cells,
             on_row_click=self._on_row_selected,
             on_row_double_click=self.view_selected,
             page_size=15
@@ -50,7 +52,13 @@ class ClientsView(ft.Container):
 
         self.content = ft.Column(
             [
-                ft.Text("👥 Administración de Clientes", size=28, weight="bold"),
+                ft.Row(
+                    [
+                        ft.Icon(ft.icons.Icons.LOCAL_SHIPPING_ROUNDED, size=28, color=self.primary_color),
+                        ft.Text("Administración de Proveedores", size=28, weight="bold"),
+                    ],
+                    spacing=10
+                ),
                 ft.Row(
                     [self.btn_add, self.btn_view, self.btn_delete],
                     alignment=ft.MainAxisAlignment.END,
@@ -62,61 +70,60 @@ class ClientsView(ft.Container):
             expand=True
         )
 
-    def _fetch_clients(self, skip, limit):
+    def _fetch_suppliers(self, skip, limit):
         with get_db() as db:
-            return client_service.get_all(db, skip=skip, limit=limit)
+            return supplier_service.get_all(db, skip=skip, limit=limit)
 
-    def _on_row_selected(self, client):
-        self.selected_client = client
-        has_selection = client is not None
+    def _on_row_selected(self, supplier):
+        self.selected_supplier = supplier
+        has_selection = supplier is not None
         self.btn_view.disabled = not has_selection
         self.btn_delete.disabled = not has_selection
         self.update()
 
-    def _build_client_cells(self, client):
+    def _build_supplier_cells(self, supplier):
         return [
-            ft.DataCell(ft.Text(client.name)),
-            ft.DataCell(ft.Text(client.document_type)),
-            ft.DataCell(ft.Text(str(client.document_number) if client.document_number else "-")),
-            ft.DataCell(ft.Text(client.email or "-")),
-            ft.DataCell(ft.Text(client.phone or "-")),
+            ft.DataCell(ft.Text(supplier.name)),
+            ft.DataCell(ft.Text(supplier.tax_id or "-")),
+            ft.DataCell(ft.Text(supplier.email or "-")),
+            ft.DataCell(ft.Text(supplier.phone or "-")),
             ft.DataCell(
                 ft.Row([
                     ft.IconButton(
-                        icon=ft.icons.Icons.EDIT,
+                        icon=ft.icons.Icons.EDIT_ROUNDED,
                         icon_color="blue",
                         tooltip="Editar",
-                        on_click=lambda e, c=client: self.open_form_modal(e, c.id)
+                        on_click=lambda e, s=supplier: self.open_form_modal(e, s.id)
                     ),
                     ft.IconButton(
-                        icon=ft.icons.Icons.DELETE,
+                        icon=ft.icons.Icons.DELETE_ROUNDED,
                         icon_color="red",
                         tooltip="Eliminar",
-                        on_click=lambda e, c=client: self.confirm_delete(c.id)
+                        on_click=lambda e, s=supplier: self.confirm_delete(s.id)
                     ),
                 ])
             ),
         ]
 
-    def view_selected(self, client):
-        if not client:
+    def view_selected(self, supplier):
+        if not supplier:
             return
 
         with get_db() as db:
-            client = client_service.get(db, client.id)
-            if not client:
+            supplier = supplier_service.get(db, supplier.id)
+            if not supplier:
                 return
 
         dlg = ft.AlertDialog(
-            title=ft.Text(f"Detalles del Cliente: {client.name}"),
+            title=ft.Text(f"Detalles del Proveedor: {supplier.name}"),
             content=ft.Column([
-                ft.Text(f"ID: {client.id}", weight="bold"),
-                ft.Text(f"Nombre: {client.name}"),
-                ft.Text(f"Documento: {client.document_type} {client.document_number}"),
-                ft.Text(f"Email: {client.email or 'N/A'}"),
-                ft.Text(f"Teléfono: {client.phone or 'N/A'}"),
-                ft.Text(f"Dirección: {getattr(client, 'address', 'N/A')}"),
-                ft.Text(f"Activo: {'Sí' if getattr(client, 'is_active', True) else 'No'}"),
+                ft.Text(f"ID: {supplier.id}", weight="bold"),
+                ft.Text(f"Nombre: {supplier.name}"),
+                ft.Text(f"CUIT/NIT (Tax ID): {supplier.tax_id or 'N/A'}"),
+                ft.Text(f"Email: {supplier.email or 'N/A'}"),
+                ft.Text(f"Teléfono: {supplier.phone or 'N/A'}"),
+                ft.Text(f"Dirección: {supplier.address or 'N/A'}"),
+                ft.Text(f"Activo: {'Sí' if getattr(supplier, 'is_active', True) else 'No'}"),
             ], tight=True),
             actions=[
                 ft.TextButton(
@@ -128,65 +135,63 @@ class ClientsView(ft.Container):
         )
         self.page.show_dialog(dlg)
 
-    def open_form_modal(self, e, client_id=None):
-        client = None
-        if client_id:
+    def open_form_modal(self, e, supplier_id=None):
+        supplier = None
+        if supplier_id:
             with get_db() as db:
-                client = client_service.get(db, client_id)
+                supplier = supplier_service.get(db, supplier_id)
 
         txt_name = ft.TextField(
-            label="Nombre Completo (*)", width=300, autofocus=True,
-            value=client.name if client else ""
+            label="Nombre o Razón Social (*)", width=300, autofocus=True,
+            value=supplier.name if supplier else ""
         )
-        dd_doc_type = ft.Dropdown(
-            label="Tipo Doc.", width=150,
-            options=[
-                ft.dropdown.Option("DNI"),
-                ft.dropdown.Option("CUIT"),
-                ft.dropdown.Option("PASAPORTE")
-            ],
-            value=client.document_type if client else "DNI"
+        txt_tax_id = ft.TextField(
+            label="CUIT/NIT", width=300,
+            value=supplier.tax_id if supplier else ""
         )
-        txt_doc_number = ft.TextField(
-            label="Nro. Documento", width=150,
-            value=str(client.document_number) if client and client.document_number else ""
-        )
-        txt_email = ft.TextField(label="Correo Electrónico", width=300, value=client.email if client else "")
-        txt_phone = ft.TextField(label="Teléfono", width=300, value=client.phone if client else "")
+        txt_email = ft.TextField(label="Correo Electrónico", width=300, value=supplier.email if supplier else "")
+        txt_phone = ft.TextField(label="Teléfono", width=300, value=supplier.phone if supplier else "")
+        txt_address = ft.TextField(label="Dirección", width=300, multiline=True, min_lines=2, max_lines=4, value=supplier.address if supplier else "")
 
-        def save_client(e2):
+        def save_supplier(e2):
             val_name = (txt_name.value or "").strip()
             if not val_name:
                 txt_name.error_text = "El nombre es obligatorio"
                 self.update()
                 return
 
-            client_data = {
+            supplier_data = {
                 "name": val_name,
-                "document_type": dd_doc_type.value,
-                "document_number": (txt_doc_number.value or "").strip() or None,
+                "tax_id": (txt_tax_id.value or "").strip() or None,
                 "email": (txt_email.value or "").strip() or None,
                 "phone": (txt_phone.value or "").strip() or None,
+                "address": (txt_address.value or "").strip() or None,
             }
 
-            with get_db() as db:
-                if client_id:
-                    db_client = client_service.get(db, client_id)
-                    client_service.update(db, db_client, client_data)
-                else:
-                    client_service.create(db, client_data)
-
-            self.page.pop_dialog()
-            self.table.refresh()
+            try:
+                with get_db() as db:
+                    if supplier_id:
+                        db_supplier = supplier_service.get(db, supplier_id)
+                        supplier_service.update(db, db_supplier, supplier_data)
+                    else:
+                        supplier_service.create(db, supplier_data)
+                
+                self.page.pop_dialog()
+                self.table.refresh()
+            except Exception as ex:
+                self.page.snack_bar = ft.SnackBar(ft.Text(f"Error al guardar: {ex}"))
+                self.page.snack_bar.open = True
+                self.page.update()
 
         dlg = ft.AlertDialog(
-            title=ft.Text("Editar Cliente" if client_id else "Nuevo Cliente"),
+            title=ft.Text("Editar Proveedor" if supplier_id else "Nuevo Proveedor"),
             content=ft.Column(
                 [
                     txt_name,
-                    ft.Row([dd_doc_type, txt_doc_number]),
+                    txt_tax_id,
                     txt_email,
                     txt_phone,
+                    txt_address,
                 ],
                 tight=True,
                 spacing=15
@@ -199,7 +204,7 @@ class ClientsView(ft.Container):
                 ),
                 ft.FilledButton(
                     "Guardar",
-                    on_click=save_client,
+                    on_click=save_supplier,
                     style=ft.ButtonStyle(
                         bgcolor=self.primary_color, color="white",
                         shape=ft.RoundedRectangleBorder(radius=5)
@@ -210,19 +215,19 @@ class ClientsView(ft.Container):
         )
         self.page.show_dialog(dlg)
 
-    def confirm_delete(self, client_id):
+    def confirm_delete(self, supplier_id):
         def on_yes(e2):
             with get_db() as db:
-                client_service.soft_delete(db, client_id)
+                supplier_service.soft_delete(db, supplier_id)
             self.page.pop_dialog()
-            self.selected_client = None
+            self.selected_supplier = None
             self.btn_view.disabled = True
             self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(
             title=ft.Text("Confirmar Eliminación"),
-            content=ft.Text("¿Estás seguro que deseas eliminar este cliente?"),
+            content=ft.Text("¿Estás seguro que deseas eliminar este proveedor?"),
             actions=[
                 ft.TextButton(
                     "Cancelar",

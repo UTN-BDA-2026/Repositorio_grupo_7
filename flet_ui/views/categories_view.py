@@ -1,16 +1,16 @@
 import flet as ft
-from services import client_service
+from services.category_service import category_service
 from database.db import get_db
 from flet_ui.components.paginated_table import PaginatedTable
 
 
-class ClientsView(ft.Container):
+class CategoriesView(ft.Container):
     def __init__(self):
         super().__init__()
         self.expand = True
         self.padding = 30
         self.primary_color = "#6200ee"
-        self.selected_client = None
+        self.selected_category = None
 
         btn_shape = ft.RoundedRectangleBorder(radius=5)
         self.btn_add = ft.FilledButton(
@@ -20,13 +20,13 @@ class ClientsView(ft.Container):
         )
         self.btn_view = ft.ElevatedButton(
             "👁 Ver Seleccionado",
-            on_click=lambda e: self.view_selected(self.selected_client),
+            on_click=lambda e: self.view_selected(self.selected_category),
             disabled=True,
             style=ft.ButtonStyle(shape=btn_shape)
         )
         self.btn_delete = ft.ElevatedButton(
             "🗑 Eliminar Seleccionado",
-            on_click=lambda e: self.confirm_delete(self.selected_client.id),
+            on_click=lambda e: self.confirm_delete(self.selected_category.id),
             disabled=True,
             color="red",
             style=ft.ButtonStyle(shape=btn_shape)
@@ -35,14 +35,12 @@ class ClientsView(ft.Container):
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
-                ft.DataColumn(ft.Text("Tipo Doc.")),
-                ft.DataColumn(ft.Text("Nro. Documento")),
-                ft.DataColumn(ft.Text("Email")),
-                ft.DataColumn(ft.Text("Teléfono")),
+                ft.DataColumn(ft.Text("Descripción")),
+                ft.DataColumn(ft.Text("Activo")),
                 ft.DataColumn(ft.Text("Acciones")),
             ],
-            fetch_data_callback=self._fetch_clients,
-            build_cells_callback=self._build_client_cells,
+            fetch_data_callback=self._fetch_categories,
+            build_cells_callback=self._build_category_cells,
             on_row_click=self._on_row_selected,
             on_row_double_click=self.view_selected,
             page_size=15
@@ -50,7 +48,7 @@ class ClientsView(ft.Container):
 
         self.content = ft.Column(
             [
-                ft.Text("👥 Administración de Clientes", size=28, weight="bold"),
+                ft.Text("🗂 Administración de Categorías", size=28, weight="bold"),
                 ft.Row(
                     [self.btn_add, self.btn_view, self.btn_delete],
                     alignment=ft.MainAxisAlignment.END,
@@ -62,61 +60,56 @@ class ClientsView(ft.Container):
             expand=True
         )
 
-    def _fetch_clients(self, skip, limit):
+    def _fetch_categories(self, skip, limit):
         with get_db() as db:
-            return client_service.get_all(db, skip=skip, limit=limit)
+            return category_service.get_all(db, skip=skip, limit=limit)
 
-    def _on_row_selected(self, client):
-        self.selected_client = client
-        has_selection = client is not None
+    def _on_row_selected(self, category):
+        self.selected_category = category
+        has_selection = category is not None
         self.btn_view.disabled = not has_selection
         self.btn_delete.disabled = not has_selection
         self.update()
 
-    def _build_client_cells(self, client):
+    def _build_category_cells(self, category):
         return [
-            ft.DataCell(ft.Text(client.name)),
-            ft.DataCell(ft.Text(client.document_type)),
-            ft.DataCell(ft.Text(str(client.document_number) if client.document_number else "-")),
-            ft.DataCell(ft.Text(client.email or "-")),
-            ft.DataCell(ft.Text(client.phone or "-")),
+            ft.DataCell(ft.Text(category.name)),
+            ft.DataCell(ft.Text(category.description or "-")),
+            ft.DataCell(ft.Text("Sí" if category.is_active else "No")),
             ft.DataCell(
                 ft.Row([
                     ft.IconButton(
                         icon=ft.icons.Icons.EDIT,
                         icon_color="blue",
                         tooltip="Editar",
-                        on_click=lambda e, c=client: self.open_form_modal(e, c.id)
+                        on_click=lambda e, c=category: self.open_form_modal(e, c.id)
                     ),
                     ft.IconButton(
                         icon=ft.icons.Icons.DELETE,
                         icon_color="red",
                         tooltip="Eliminar",
-                        on_click=lambda e, c=client: self.confirm_delete(c.id)
+                        on_click=lambda e, c=category: self.confirm_delete(c.id)
                     ),
                 ])
             ),
         ]
 
-    def view_selected(self, client):
-        if not client:
+    def view_selected(self, category):
+        if not category:
             return
 
         with get_db() as db:
-            client = client_service.get(db, client.id)
-            if not client:
+            category = category_service.get(db, category.id)
+            if not category:
                 return
 
         dlg = ft.AlertDialog(
-            title=ft.Text(f"Detalles del Cliente: {client.name}"),
+            title=ft.Text(f"Detalles: {category.name}"),
             content=ft.Column([
-                ft.Text(f"ID: {client.id}", weight="bold"),
-                ft.Text(f"Nombre: {client.name}"),
-                ft.Text(f"Documento: {client.document_type} {client.document_number}"),
-                ft.Text(f"Email: {client.email or 'N/A'}"),
-                ft.Text(f"Teléfono: {client.phone or 'N/A'}"),
-                ft.Text(f"Dirección: {getattr(client, 'address', 'N/A')}"),
-                ft.Text(f"Activo: {'Sí' if getattr(client, 'is_active', True) else 'No'}"),
+                ft.Text(f"ID: {category.id}", weight="bold"),
+                ft.Text(f"Nombre: {category.name}"),
+                ft.Text(f"Descripción: {category.description or 'N/A'}"),
+                ft.Text(f"Activo: {'Sí' if category.is_active else 'No'}"),
             ], tight=True),
             actions=[
                 ft.TextButton(
@@ -128,66 +121,47 @@ class ClientsView(ft.Container):
         )
         self.page.show_dialog(dlg)
 
-    def open_form_modal(self, e, client_id=None):
-        client = None
-        if client_id:
+    def open_form_modal(self, e, category_id=None):
+        category = None
+        if category_id:
             with get_db() as db:
-                client = client_service.get(db, client_id)
+                category = category_service.get(db, category_id)
 
         txt_name = ft.TextField(
-            label="Nombre Completo (*)", width=300, autofocus=True,
-            value=client.name if client else ""
+            label="Nombre (*)", width=300, autofocus=True,
+            value=category.name if category else ""
         )
-        dd_doc_type = ft.Dropdown(
-            label="Tipo Doc.", width=150,
-            options=[
-                ft.dropdown.Option("DNI"),
-                ft.dropdown.Option("CUIT"),
-                ft.dropdown.Option("PASAPORTE")
-            ],
-            value=client.document_type if client else "DNI"
+        txt_description = ft.TextField(
+            label="Descripción", width=300, multiline=True, min_lines=2, max_lines=4,
+            value=category.description if category else ""
         )
-        txt_doc_number = ft.TextField(
-            label="Nro. Documento", width=150,
-            value=str(client.document_number) if client and client.document_number else ""
-        )
-        txt_email = ft.TextField(label="Correo Electrónico", width=300, value=client.email if client else "")
-        txt_phone = ft.TextField(label="Teléfono", width=300, value=client.phone if client else "")
 
-        def save_client(e2):
+        def save_category(e2):
             val_name = (txt_name.value or "").strip()
             if not val_name:
                 txt_name.error_text = "El nombre es obligatorio"
                 self.update()
                 return
 
-            client_data = {
+            category_data = {
                 "name": val_name,
-                "document_type": dd_doc_type.value,
-                "document_number": (txt_doc_number.value or "").strip() or None,
-                "email": (txt_email.value or "").strip() or None,
-                "phone": (txt_phone.value or "").strip() or None,
+                "description": (txt_description.value or "").strip() or None,
             }
 
             with get_db() as db:
-                if client_id:
-                    db_client = client_service.get(db, client_id)
-                    client_service.update(db, db_client, client_data)
+                if category_id:
+                    db_category = category_service.get(db, category_id)
+                    category_service.update(db, db_category, category_data)
                 else:
-                    client_service.create(db, client_data)
+                    category_service.create(db, category_data)
 
             self.page.pop_dialog()
             self.table.refresh()
 
         dlg = ft.AlertDialog(
-            title=ft.Text("Editar Cliente" if client_id else "Nuevo Cliente"),
+            title=ft.Text("Editar Categoría" if category_id else "Nueva Categoría"),
             content=ft.Column(
-                [
-                    txt_name,
-                    ft.Row([dd_doc_type, txt_doc_number]),
-                    txt_email,
-                    txt_phone,
-                ],
+                [txt_name, txt_description],
                 tight=True,
                 spacing=15
             ),
@@ -199,7 +173,7 @@ class ClientsView(ft.Container):
                 ),
                 ft.FilledButton(
                     "Guardar",
-                    on_click=save_client,
+                    on_click=save_category,
                     style=ft.ButtonStyle(
                         bgcolor=self.primary_color, color="white",
                         shape=ft.RoundedRectangleBorder(radius=5)
@@ -210,19 +184,19 @@ class ClientsView(ft.Container):
         )
         self.page.show_dialog(dlg)
 
-    def confirm_delete(self, client_id):
+    def confirm_delete(self, category_id):
         def on_yes(e2):
             with get_db() as db:
-                client_service.soft_delete(db, client_id)
+                category_service.soft_delete(db, category_id)
             self.page.pop_dialog()
-            self.selected_client = None
+            self.selected_category = None
             self.btn_view.disabled = True
             self.btn_delete.disabled = True
             self.table.refresh()
 
         dlg = ft.AlertDialog(
             title=ft.Text("Confirmar Eliminación"),
-            content=ft.Text("¿Estás seguro que deseas eliminar este cliente?"),
+            content=ft.Text("¿Estás seguro que deseas eliminar esta categoría?"),
             actions=[
                 ft.TextButton(
                     "Cancelar",
