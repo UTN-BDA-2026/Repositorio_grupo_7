@@ -20,6 +20,12 @@ class SuppliersView(ft.Container):
             style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
+        self.swt_show_inactive = ft.Switch(
+            label="Mostrar inactivas",
+            value=False,
+            on_change=lambda e: self.table.refresh()
+        )
+
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
@@ -31,6 +37,7 @@ class SuppliersView(ft.Container):
             fetch_data_callback=self._fetch_suppliers,
             build_cells_callback=self._build_supplier_cells,
             on_row_click=self._on_row_selected,
+            on_sort_callback=self._on_sort,
             on_row_double_click=self.view_selected,
             page_size=15
         )
@@ -45,9 +52,9 @@ class SuppliersView(ft.Container):
                     spacing=10
                 ),
                 ft.Row(
-                    [self.btn_add],
+                    [self.swt_show_inactive, self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
-                    spacing=10
+                    spacing=20
                 ),
                 ft.Divider(height=5, color="transparent"),
                 self.table,
@@ -55,9 +62,22 @@ class SuppliersView(ft.Container):
             expand=True
         )
 
+    def _on_sort(self, col_index, ascending):
+        sort_map = {0: "name", 1: "tax_id", 2: "phone", 3: "email", 4: "is_active"}
+        self.current_order_by = sort_map.get(col_index)
+        self.current_order_desc = not ascending
+        self.table.refresh()
+
     def _fetch_suppliers(self, skip, limit):
         with get_db() as db:
-            return supplier_service.get_all(db, skip=skip, limit=limit)
+            return supplier_service.get_all(
+                db, 
+                skip=skip, 
+                limit=limit, 
+                include_inactive=self.swt_show_inactive.value,
+                order_by=getattr(self, 'current_order_by', None),
+                order_desc=getattr(self, 'current_order_desc', False)
+            )
 
     def _on_row_selected(self, supplier):
         self.selected_supplier = supplier
@@ -135,6 +155,10 @@ class SuppliersView(ft.Container):
         txt_email = ft.TextField(label="Correo Electrónico", width=300, value=supplier.email if supplier else "")
         txt_phone = ft.TextField(label="Teléfono", width=300, value=supplier.phone if supplier else "")
         txt_address = ft.TextField(label="Dirección", width=300, multiline=True, min_lines=2, max_lines=4, value=supplier.address if supplier else "")
+        swt_active = ft.Switch(
+            label="Activo", 
+            value=getattr(supplier, 'is_active', True) if supplier else True
+        )
 
         def save_supplier(e2):
             val_name = (txt_name.value or "").strip()
@@ -149,6 +173,7 @@ class SuppliersView(ft.Container):
                 "email": (txt_email.value or "").strip() or None,
                 "phone": (txt_phone.value or "").strip() or None,
                 "address": (txt_address.value or "").strip() or None,
+                "is_active": swt_active.value,
             }
 
             try:
@@ -175,6 +200,7 @@ class SuppliersView(ft.Container):
                     txt_email,
                     txt_phone,
                     txt_address,
+                    swt_active,
                 ],
                 tight=True,
                 spacing=15

@@ -109,6 +109,39 @@ class AuditView(ft.Container):
                 icon = ft.icons.Icons.LOCAL_SHIPPING_ROUNDED
                 color = "#f39c12"
                 ref_id = payload.get("purchase_id", "")
+            elif ev_type == "user_created":
+                ev_type_label = "Alta Usuario"
+                icon = ft.icons.Icons.PERSON_ADD_ROUNDED
+                color = "#3498db"
+                ref_id = payload.get("target_user_name", "")
+            elif ev_type == "user_deleted":
+                ev_type_label = "Baja Usuario"
+                icon = ft.icons.Icons.PERSON_REMOVE_ROUNDED
+                color = "#e74c3c"
+                ref_id = payload.get("target_user_name", "")
+            elif ev_type == "user_restored":
+                ev_type_label = "Reactivación Usuario"
+                icon = ft.icons.Icons.RESTORE_ROUNDED
+                color = "#9b59b6"
+                ref_id = payload.get("target_user_name", "")
+            elif ev_type == "entity_created":
+                ent = payload.get("entity", "ent")
+                ev_type_label = f"Alta ({ent})"
+                icon = ft.icons.Icons.ADD_BOX_ROUNDED
+                color = "#27ae60"
+                ref_id = payload.get("id", "")
+            elif ev_type == "entity_updated":
+                ent = payload.get("entity", "ent")
+                ev_type_label = f"Edición ({ent})"
+                icon = ft.icons.Icons.EDIT_ROUNDED
+                color = "#8e44ad"
+                ref_id = payload.get("id", "")
+            elif ev_type == "entity_deleted":
+                ent = payload.get("entity", "ent")
+                ev_type_label = f"Baja ({ent})"
+                icon = ft.icons.Icons.DELETE_ROUNDED
+                color = "#c0392b"
+                ref_id = payload.get("id", "")
             else:
                 ev_type_label = ev_type.upper()
                 icon = ft.icons.Icons.INFO_ROUNDED
@@ -170,6 +203,30 @@ class AuditView(ft.Container):
             icon = ft.icons.Icons.LOCAL_SHIPPING_ROUNDED
             color = "#f39c12"
             ev_type_label = "Ingreso de Mercadería"
+        elif ev_type == "user_created":
+            icon = ft.icons.Icons.PERSON_ADD_ROUNDED
+            color = "#3498db"
+            ev_type_label = "Creación de Usuario"
+        elif ev_type == "user_deleted":
+            icon = ft.icons.Icons.PERSON_REMOVE_ROUNDED
+            color = "#e74c3c"
+            ev_type_label = "Baja Lógica de Usuario"
+        elif ev_type == "user_restored":
+            icon = ft.icons.Icons.RESTORE_ROUNDED
+            color = "#9b59b6"
+            ev_type_label = "Reactivación de Usuario"
+        elif ev_type == "entity_created":
+            icon = ft.icons.Icons.ADD_BOX_ROUNDED
+            color = "#27ae60"
+            ev_type_label = f"Alta en tabla: {payload.get('entity', '')}"
+        elif ev_type == "entity_updated":
+            icon = ft.icons.Icons.EDIT_ROUNDED
+            color = "#8e44ad"
+            ev_type_label = f"Modificación en tabla: {payload.get('entity', '')}"
+        elif ev_type == "entity_deleted":
+            icon = ft.icons.Icons.DELETE_ROUNDED
+            color = "#c0392b"
+            ev_type_label = f"Baja en tabla: {payload.get('entity', '')}"
         else:
             ev_type_label = ev_type.upper()
 

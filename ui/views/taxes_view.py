@@ -19,6 +19,12 @@ class TaxesView(ft.Container):
             style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
+        self.swt_show_inactive = ft.Switch(
+            label="Mostrar inactivas",
+            value=False,
+            on_change=lambda e: self.table.refresh()
+        )
+
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
@@ -30,6 +36,7 @@ class TaxesView(ft.Container):
             fetch_data_callback=self._fetch_taxes,
             build_cells_callback=self._build_tax_cells,
             on_row_click=self._on_row_selected,
+            on_sort_callback=self._on_sort,
             on_row_double_click=self.view_selected,
             page_size=15
         )
@@ -38,9 +45,9 @@ class TaxesView(ft.Container):
             [
                 ft.Text("💲 Administración de Impuestos", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add],
+                    [self.swt_show_inactive, self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
-                    spacing=10
+                    spacing=20
                 ),
                 ft.Divider(height=5, color="transparent"),
                 self.table,
@@ -48,9 +55,22 @@ class TaxesView(ft.Container):
             expand=True
         )
 
+    def _on_sort(self, col_index, ascending):
+        sort_map = {0: "name", 1: "rate", 2: "is_default", 3: "is_active"}
+        self.current_order_by = sort_map.get(col_index)
+        self.current_order_desc = not ascending
+        self.table.refresh()
+
     def _fetch_taxes(self, skip, limit):
         with get_db() as db:
-            return tax_service.get_all(db, skip=skip, limit=limit)
+            return tax_service.get_all(
+                db, 
+                skip=skip, 
+                limit=limit, 
+                include_inactive=self.swt_show_inactive.value,
+                order_by=getattr(self, 'current_order_by', None),
+                order_desc=getattr(self, 'current_order_desc', False)
+            )
 
     def _on_row_selected(self, tax):
         self.selected_tax = tax
@@ -129,6 +149,10 @@ class TaxesView(ft.Container):
             label="Impuesto por defecto",
             value=tax.is_default if tax else False
         )
+        swt_active = ft.Switch(
+            label="Activo", 
+            value=tax.is_active if tax else True
+        )
 
         def save_tax(e2):
             val_name = (txt_name.value or "").strip()
@@ -156,6 +180,7 @@ class TaxesView(ft.Container):
                 "name": val_name,
                 "rate": rate,
                 "is_default": chk_default.value or False,
+                "is_active": swt_active.value,
             }
 
             with get_db() as db:
@@ -171,7 +196,7 @@ class TaxesView(ft.Container):
         dlg = ft.AlertDialog(
             title=ft.Text("Editar Impuesto" if tax_id else "Nuevo Impuesto"),
             content=ft.Column(
-                [txt_name, txt_rate, chk_default],
+                [txt_name, txt_rate, chk_default, swt_active],
                 tight=True,
                 spacing=15
             ),

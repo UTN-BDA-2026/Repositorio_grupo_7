@@ -89,6 +89,9 @@ class DashboardView(ft.Container):
         self._cards = []
 
         for cfg in CARD_CONFIGS:
+            if self._app_layout and cfg["nav_key"] not in self._app_layout._nav_buttons:
+                continue
+
             count_label = ft.Text("—", size=36, weight="bold", color="white")
             self._count_labels[cfg["key"]] = count_label
 
@@ -98,12 +101,12 @@ class DashboardView(ft.Container):
                         ft.Column(
                             [
                                 count_label,
-                                ft.Text(cfg["label"], size=13, color="white70"),
+                                ft.Text(cfg["label"], size=16, weight="w500", color="white"),
                             ],
                             spacing=2,
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
-                        ft.Icon(cfg["icon"], size=48, color="white24"),
+                        ft.Icon(cfg["icon"], size=64, color="white"),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,

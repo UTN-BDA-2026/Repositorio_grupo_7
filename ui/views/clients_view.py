@@ -35,6 +35,12 @@ class ClientsView(ft.Container):
             visible=self.can_delete
         )
 
+        self.swt_show_inactive = ft.Switch(
+            label="Mostrar inactivas",
+            value=False,
+            on_change=lambda e: self.table.refresh()
+        )
+
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
@@ -47,6 +53,7 @@ class ClientsView(ft.Container):
             fetch_data_callback=self._fetch_clients,
             build_cells_callback=self._build_client_cells,
             on_row_click=self._on_row_selected,
+            on_sort_callback=self._on_sort,
             on_row_double_click=self.view_selected,
             page_size=15
         )
@@ -55,9 +62,9 @@ class ClientsView(ft.Container):
             [
                 ft.Text("👥 Administración de Clientes", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add],
+                    [self.swt_show_inactive, self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
-                    spacing=10
+                    spacing=20
                 ),
                 ft.Divider(height=5, color="transparent"),
                 self.table,
@@ -65,9 +72,22 @@ class ClientsView(ft.Container):
             expand=True
         )
 
+    def _on_sort(self, col_index, ascending):
+        sort_map = {0: "name", 1: "document_type", 2: "document_number", 3: "phone", 4: "email", 5: "is_active"}
+        self.current_order_by = sort_map.get(col_index)
+        self.current_order_desc = not ascending
+        self.table.refresh()
+
     def _fetch_clients(self, skip, limit):
         with get_db() as db:
-            return client_service.get_all(db, skip=skip, limit=limit)
+            return client_service.get_all(
+                db, 
+                skip=skip, 
+                limit=limit, 
+                include_inactive=self.swt_show_inactive.value,
+                order_by=getattr(self, 'current_order_by', None),
+                order_desc=getattr(self, 'current_order_desc', False)
+            )
 
     def _on_row_selected(self, client):
         self.selected_client = client
@@ -158,6 +178,10 @@ class ClientsView(ft.Container):
         )
         txt_email = ft.TextField(label="Correo Electrónico", width=300, value=client.email if client else "")
         txt_phone = ft.TextField(label="Teléfono", width=300, value=client.phone if client else "")
+        swt_active = ft.Switch(
+            label="Activo", 
+            value=getattr(client, 'is_active', True) if client else True
+        )
 
         def save_client(e2):
             val_name = (txt_name.value or "").strip()
@@ -172,6 +196,7 @@ class ClientsView(ft.Container):
                 "document_number": (txt_doc_number.value or "").strip() or None,
                 "email": (txt_email.value or "").strip() or None,
                 "phone": (txt_phone.value or "").strip() or None,
+                "is_active": swt_active.value,
             }
 
             with get_db() as db:
@@ -192,6 +217,7 @@ class ClientsView(ft.Container):
                     ft.Row([dd_doc_type, txt_doc_number]),
                     txt_email,
                     txt_phone,
+                    swt_active,
                 ],
                 tight=True,
                 spacing=15

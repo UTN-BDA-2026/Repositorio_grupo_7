@@ -50,7 +50,7 @@ class SalesHistoryView(ft.Container):
 
     def _build_sale_cells(self, sale):
         fecha = sale.created_at.strftime("%d/%m/%Y %H:%M") if sale.created_at else "-"
-        cliente = sale.client.name if sale.client else "Sin cliente"
+        cliente = sale.client.name if sale.client else "Consumidor Final"
         metodo = sale.payment_method.name if sale.payment_method else "-"
         total = f"${sale.total_amount:,.2f}"
 
@@ -81,7 +81,7 @@ class SalesHistoryView(ft.Container):
         ]
 
         fecha = full_sale.created_at.strftime("%d/%m/%Y %H:%M") if full_sale.created_at else "-"
-        cliente = full_sale.client.name if full_sale.client else "Sin cliente"
+        cliente = full_sale.client.name if full_sale.client else "Consumidor Final"
         metodo = full_sale.payment_method.name if full_sale.payment_method else "-"
 
         items_table = ft.DataTable(

@@ -1,10 +1,10 @@
 import flet as ft
 
 
-SIDEBAR_BG = "#1e272e"
+SIDEBAR_BG = "#1E1E2F"
 SIDEBAR_WIDTH = 240
-ACCENT_COLOR = "#e74c3c"
-ACCENT_HOVER = "#c0392b"
+ACCENT_COLOR = "#4F46E5"
+ACCENT_HOVER = "#4338CA"
 NAV_ITEM_HEIGHT = 42
 
 
@@ -33,7 +33,9 @@ class AppLayout(ft.Row):
             "brands": ("Marcas", ft.icons.Icons.LABEL_ROUNDED, self.show_brands),
             "taxes": ("Impuestos", ft.icons.Icons.PERCENT_ROUNDED, self.show_taxes),
             "users": ("Usuarios", ft.icons.Icons.MANAGE_ACCOUNTS_ROUNDED, self.show_users),
+            "branches": ("Sucursales", ft.icons.Icons.STORE_MALL_DIRECTORY_ROUNDED, self.show_branches),
             "audit": ("Auditoría", ft.icons.Icons.HISTORY_ROUNDED, self.show_audit),
+            "backup": ("Respaldos", ft.icons.Icons.CLOUD_DOWNLOAD_ROUNDED, self.show_backup),
         }
 
         self._nav_buttons = {}
@@ -47,7 +49,7 @@ class AppLayout(ft.Row):
         else:
             # Es Admin
             main_keys = ["dashboard", "pos", "purchases", "sales", "clients", "suppliers", "products"]
-            config_keys = ["users", "categories", "brands", "taxes", "audit"]
+            config_keys = ["users", "branches", "categories", "brands", "taxes", "audit", "backup"]
 
         for key in main_keys:
             btn = self._build_nav_button(key)
@@ -122,7 +124,7 @@ class AppLayout(ft.Row):
                             "MENÚ PRINCIPAL",
                             theme_style=ft.TextThemeStyle.LABEL_SMALL,
                             weight="bold",
-                            color="white38",
+                            color="white70",
                         ),
                         padding=ft.Padding(left=12, top=0, right=0, bottom=8),
                     ),
@@ -133,7 +135,7 @@ class AppLayout(ft.Row):
                             "CONFIGURACIÓN",
                             theme_style=ft.TextThemeStyle.LABEL_SMALL,
                             weight="bold",
-                            color="white38",
+                            color="white70",
                         ),
                         padding=ft.Padding(left=12, top=0, right=0, bottom=8),
                     ) if nav_config else ft.Container(),
@@ -153,11 +155,11 @@ class AppLayout(ft.Row):
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon(icon, size=20, color="white" if is_active else "white54"),
+                    ft.Icon(icon, size=20, color="white" if is_active else "white70"),
                     ft.Text(
                         label,
                         theme_style=ft.TextThemeStyle.BODY_MEDIUM,
-                        color="white" if is_active else "white54",
+                        color="white" if is_active else "white70",
                         weight="w500" if is_active else "normal",
                     ),
                 ],
@@ -193,8 +195,8 @@ class AppLayout(ft.Row):
             row = container.content
             icon_ctrl = row.controls[0]
             text_ctrl = row.controls[1]
-            icon_ctrl.color = "white" if is_active else "white54"
-            text_ctrl.color = "white" if is_active else "white54"
+            icon_ctrl.color = "white" if is_active else "white70"
+            text_ctrl.color = "white" if is_active else "white70"
             text_ctrl.weight = "w500" if is_active else "normal"
 
         self.sidebar.update()
@@ -290,11 +292,20 @@ class AppLayout(ft.Row):
         self.active_view.content = UsersView()
         self._page.update()
 
+    def show_branches(self, e=None):
+        from ui.views.branches_view import BranchesView
+        self.active_view.content = BranchesView()
+        self._page.update()
+
     def show_audit(self, e=None):
         from ui.views.audit_view import AuditView
         self.active_view.content = AuditView()
         self._page.update()
 
+    def show_backup(self, e=None):
+        from ui.views.backup_view import BackupView
+        self.active_view.content = BackupView(self.current_user)
+        self._page.update()
 
     def logout(self, e):
         from ui.views.login_view import LoginView
@@ -314,6 +325,8 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
     page.spacing = 0
+    page.window.maximized = True
+    page.window.title_bar_hidden = True
 
     from ui.views.login_view import LoginView
     page.add(LoginView(on_login_success=lambda u: _on_login_success(page, u)))

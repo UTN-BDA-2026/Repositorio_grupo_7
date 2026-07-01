@@ -21,6 +21,12 @@ class UsersView(ft.Container):
             style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
+        self.swt_show_inactive = ft.Switch(
+            label="Mostrar inactivas",
+            value=False,
+            on_change=lambda e: self.table.refresh()
+        )
+
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
@@ -32,6 +38,7 @@ class UsersView(ft.Container):
             fetch_data_callback=self._fetch_users,
             build_cells_callback=self._build_user_cells,
             on_row_click=self._on_row_selected,
+            on_sort_callback=self._on_sort,
             on_row_double_click=self.view_selected,
             page_size=15
         )
@@ -46,9 +53,9 @@ class UsersView(ft.Container):
                     spacing=10
                 ),
                 ft.Row(
-                    [self.btn_add],
+                    [self.swt_show_inactive, self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
-                    spacing=10
+                    spacing=20
                 ),
                 ft.Divider(height=5, color="transparent"),
                 self.table,
@@ -56,9 +63,22 @@ class UsersView(ft.Container):
             expand=True
         )
 
+    def _on_sort(self, col_index, ascending):
+        sort_map = {0: "name", 1: "email", 2: "branch_id", 3: "is_active"}
+        self.current_order_by = sort_map.get(col_index)
+        self.current_order_desc = not ascending
+        self.table.refresh()
+
     def _fetch_users(self, skip, limit):
         with get_db() as db:
-            return user_service.get_all(db, skip=skip, limit=limit)
+            return user_service.get_all(
+                db, 
+                skip=skip, 
+                limit=limit, 
+                include_inactive=self.swt_show_inactive.value,
+                order_by=getattr(self, 'current_order_by', None),
+                order_desc=getattr(self, 'current_order_desc', False)
+            )
 
     def _on_row_selected(self, user):
         self.selected_user = user
@@ -165,6 +185,11 @@ class UsersView(ft.Container):
             label="Puede eliminar clientes",
             value=perms.get("can_delete_clients", False)
         )
+        
+        swt_active = ft.Switch(
+            label="Usuario Activo", 
+            value=user.is_active if user else True
+        )
 
         perm_container = ft.Column([
             ft.Text("Permisos Adicionales", weight="bold"),
@@ -201,6 +226,7 @@ class UsersView(ft.Container):
                 "email": val_email,
                 "branch_id": dd_branch.value if dd_branch.value else None,
                 "pos_pin": (txt_pos_pin.value or "").strip() or None,
+                "is_active": swt_active.value,
                 "permissions": {
                     "can_edit_clients": chk_can_edit_clients.value,
                     "can_delete_clients": chk_can_delete_clients.value
@@ -233,7 +259,8 @@ class UsersView(ft.Container):
                     txt_password,
                     txt_pos_pin,
                     dd_branch,
-                    perm_container
+                    perm_container,
+                    swt_active
                 ],
                 tight=True,
                 spacing=15
