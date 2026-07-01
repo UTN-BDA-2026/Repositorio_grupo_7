@@ -2,7 +2,7 @@ import flet as ft
 from services.product_service import product_service
 from services.tax_service import tax_service
 from database.db import get_db
-from flet_ui.components.paginated_table import PaginatedTable
+from ui.components.paginated_table import PaginatedTable
 
 
 class ProductsView(ft.Container):

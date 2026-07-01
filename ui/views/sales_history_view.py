@@ -1,7 +1,7 @@
 import flet as ft
 from database.db import get_db
 from services.sale_service import sale_service
-from flet_ui.components.paginated_table import PaginatedTable
+from ui.components.paginated_table import PaginatedTable
 
 
 class SalesHistoryView(ft.Container):

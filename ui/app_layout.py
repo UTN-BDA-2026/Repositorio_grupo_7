@@ -236,68 +236,68 @@ class AppLayout(ft.Row):
         self._update_theme()
 
     def show_dashboard(self, e=None):
-        from flet_ui.views.dashboard_view import DashboardView
+        from ui.views.dashboard_view import DashboardView
         self.active_view.content = DashboardView(self)
         self._page.update()
 
     def show_clients(self, e=None):
-        from flet_ui.views.clients_view import ClientsView
+        from ui.views.clients_view import ClientsView
         self.active_view.content = ClientsView(current_user=self.current_user)
         self._page.update()
 
     def show_suppliers(self, e=None):
-        from flet_ui.views.suppliers_view import SuppliersView
+        from ui.views.suppliers_view import SuppliersView
         self.active_view.content = SuppliersView()
         self._page.update()
 
     def show_products(self, e=None):
-        from flet_ui.views.products_view import ProductsView
+        from ui.views.products_view import ProductsView
         self.active_view.content = ProductsView()
         self._page.update()
 
     def show_sales_history(self, e=None):
-        from flet_ui.views.sales_history_view import SalesHistoryView
+        from ui.views.sales_history_view import SalesHistoryView
         self.active_view.content = SalesHistoryView()
         self._page.update()
 
     def show_pos(self, e=None):
-        from flet_ui.views.pos_view import POSView
+        from ui.views.pos_view import POSView
         self.active_view.content = POSView()
         self._page.update()
 
     def show_purchases(self, e=None):
-        from flet_ui.views.purchases_view import PurchasesView
+        from ui.views.purchases_view import PurchasesView
         self.active_view.content = PurchasesView()
         self._page.update()
 
     def show_categories(self, e=None):
-        from flet_ui.views.categories_view import CategoriesView
+        from ui.views.categories_view import CategoriesView
         self.active_view.content = CategoriesView()
         self._page.update()
 
     def show_brands(self, e=None):
-        from flet_ui.views.brands_view import BrandsView
+        from ui.views.brands_view import BrandsView
         self.active_view.content = BrandsView()
         self._page.update()
 
     def show_taxes(self, e=None):
-        from flet_ui.views.taxes_view import TaxesView
+        from ui.views.taxes_view import TaxesView
         self.active_view.content = TaxesView()
         self._page.update()
 
     def show_users(self, e=None):
-        from flet_ui.views.users_view import UsersView
+        from ui.views.users_view import UsersView
         self.active_view.content = UsersView()
         self._page.update()
 
     def show_audit(self, e=None):
-        from flet_ui.views.audit_view import AuditView
+        from ui.views.audit_view import AuditView
         self.active_view.content = AuditView()
         self._page.update()
 
 
     def logout(self, e):
-        from flet_ui.views.login_view import LoginView
+        from ui.views.login_view import LoginView
         self._page.controls.clear()
         self._page.appbar = None
         self._page.add(LoginView(on_login_success=lambda u: _on_login_success(self._page, u)))
@@ -315,7 +315,7 @@ def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
 
-    from flet_ui.views.login_view import LoginView
+    from ui.views.login_view import LoginView
     page.add(LoginView(on_login_success=lambda u: _on_login_success(page, u)))
 
 
