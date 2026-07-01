@@ -1,5 +1,5 @@
 import flet as ft
-from nosql.client import db
+from nosql.client import get_mongo_db
 import json
 from datetime import datetime
 
@@ -49,6 +49,7 @@ class AuditView(ft.Container):
         
         try:
             # Traer los últimos 50 eventos ordenados por fecha descendente
+            db = get_mongo_db()
             events = list(db.events.find().sort("created_at", -1).limit(50))
             
             if not events:

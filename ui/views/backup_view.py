@@ -115,7 +115,7 @@ class BackupView(ft.Container):
                             self.dd_freq.value = parts
                             return
             self.dd_freq.value = "nunca"
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, FileNotFoundError):
             self.dd_freq.value = "nunca"
 
     def trigger_immediate(self, e):
@@ -145,6 +145,12 @@ class BackupView(ft.Container):
                 content=ft.Text(f"Falló la ejecución:\n{err.stderr}"),
                 actions=[ft.TextButton("Cerrar", on_click=close_dlg)]
             )
+        except FileNotFoundError:
+            dlg = ft.AlertDialog(
+                title=ft.Text("Error en Respaldo", color="#e74c3c"), # fallback color
+                content=ft.Text("No se encontró el comando 'bash' en Windows para ejecutar el script de respaldo."),
+                actions=[ft.TextButton("Cerrar", on_click=close_dlg)]
+            )
             
         if hasattr(self.page, "show_dialog"):
             self.page.show_dialog(dlg)
@@ -158,7 +164,7 @@ class BackupView(ft.Container):
         try:
             try:
                 current_cron = subprocess.check_output(["crontab", "-l"]).decode('utf-8')
-            except subprocess.CalledProcessError:
+            except (subprocess.CalledProcessError, FileNotFoundError):
                 current_cron = ""
                 
             lines = [line for line in current_cron.splitlines() if "backup.sh" not in line]
@@ -172,7 +178,11 @@ class BackupView(ft.Container):
                 f.write(new_cron)
                 tmp_name = f.name
                 
-            subprocess.run(["crontab", tmp_name])
+            try:
+                subprocess.run(["crontab", tmp_name])
+            except FileNotFoundError:
+                # Si crontab no existe en el sistema (ej: Windows)
+                pass
             os.remove(tmp_name)
             
             log_event("backup_schedule_updated", {
@@ -181,6 +191,8 @@ class BackupView(ft.Container):
             })
             
             self.status_text.value = "Programación guardada exitosamente."
+            if not os.path.exists('/usr/bin/crontab') and not os.path.exists('/bin/crontab'):
+                 self.status_text.value += " (Simulado: crontab no disponible en Windows)"
             self.update()
             
         except Exception as ex:

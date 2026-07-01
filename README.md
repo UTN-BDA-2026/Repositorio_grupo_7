@@ -77,6 +77,14 @@ Para crear las tablas en tu PostgreSQL local a partir de los modelos de SQLAlche
 alembic upgrade head
 ```
 
+### 6️⃣ Cargar datos de prueba (Opcional pero recomendado)
+Las migraciones solo crean la estructura de la base de datos (tablas e índices). Para poder ingresar a la aplicación y tener datos para probar, es muy recomendable ejecutar el script de seed:
+
+```bash
+python scripts/seed_datos_realistas.py
+```
+> ⚠️ **Atención:** Este script vacía las tablas y carga un conjunto nuevo de sucursales, productos, clientes, usuarios y ventas.
+
 ---
 
 ## 🏃 Ejecutar la aplicación
@@ -86,6 +94,20 @@ Una vez completados todos los pasos anteriores, podés iniciar el sistema con:
 ```bash
 python main.py
 ```
+
+### 🔑 Credenciales de Acceso
+Si ejecutaste el script de `seed_datos_realistas.py`, podés ingresar con las siguientes cuentas de prueba:
+
+**Como Administrador Global:**
+- **Email:** `admin@example.com`
+- **Contraseña:** `123`
+- **PIN de caja:** `0000`
+
+**Como Cajeros (ej. Sucursal 1):**
+- **Email:** `cajero1@example.com`
+- **Contraseña:** `123`
+- **PIN de caja:** `1111`
+*(Existen cajeros 1, 2 y 3, con pines 1111, 1112 y 1113 respectivamente).*
 
 ## 📚 Documentación adicional
 
@@ -114,8 +136,8 @@ La seguridad del sistema está cubierta desde la base estructural:
 *   **Prevención de Inyección SQL:** Gracias al uso de SQLAlchemy, todas las entradas de datos que haga el usuario son filtradas y sanitizadas.
 *   **Hashing de Contraseñas:** Las contraseñas de los usuarios se encriptan con `bcrypt` garantizando máxima seguridad en la persistencia.
 
-### 3. Índices Estratégicos (⏳ Pendiente)
-Además de las Claves Primarias por defecto, se agregarán índices en la base de datos para asegurar el máximo rendimiento. Se colocarán estratégicamente en aquellas columnas que la interfaz utilizará para búsquedas frecuentes (ej: DNI en Clientes o el SKU en Productos).
+### 3. Índices Estratégicos (✅ Listo)
+Además de las Claves Primarias por defecto, se agregaron índices en la base de datos para asegurar el máximo rendimiento. Se colocaron estratégicamente en aquellas columnas que la aplicación utiliza para búsquedas frecuentes (ej: código de barras, búsquedas de prefijos, búsquedas por fechas en sucursales). Se puede consultar el benchmark en `docs/indices.md`.
 
 ### 4. Backup & Restore (⏳ Pendiente)
 Para facilitar la administración del sistema, se integrará una función de copias de seguridad directamente en la Interfaz Gráfica. El usuario administrador podrá generar un volcado de la base de datos con un solo clic.
