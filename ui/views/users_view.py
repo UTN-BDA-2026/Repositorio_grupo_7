@@ -2,7 +2,7 @@ import flet as ft
 from services.user_service import user_service
 from services.branch_service import branch_service
 from database.db import get_db
-from flet_ui.components.paginated_table import PaginatedTable
+from ui.components.paginated_table import PaginatedTable
 
 
 class UsersView(ft.Container):
