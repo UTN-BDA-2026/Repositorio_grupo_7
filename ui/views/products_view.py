@@ -20,6 +20,12 @@ class ProductsView(ft.Container):
             style=ft.ButtonStyle(bgcolor="#3498db", color="white", shape=btn_shape)
         )
 
+        self.swt_show_inactive = ft.Switch(
+            label="Mostrar inactivas",
+            value=False,
+            on_change=lambda e: self.table.refresh()
+        )
+
         self.table = PaginatedTable(
             columns=[
                 ft.DataColumn(ft.Text("Nombre")),
@@ -32,6 +38,7 @@ class ProductsView(ft.Container):
             fetch_data_callback=self._fetch_products,
             build_cells_callback=self._build_product_cells,
             on_row_click=self._on_row_selected,
+            on_sort_callback=self._on_sort,
             on_row_double_click=self.view_selected,
             page_size=15
         )
@@ -40,9 +47,9 @@ class ProductsView(ft.Container):
             [
                 ft.Text("📦 Administración de Productos", size=28, weight="bold"),
                 ft.Row(
-                    [self.btn_add],
+                    [self.swt_show_inactive, self.btn_add],
                     alignment=ft.MainAxisAlignment.END,
-                    spacing=10
+                    spacing=20
                 ),
                 ft.Divider(height=5, color="transparent"),
                 self.table,
@@ -50,9 +57,22 @@ class ProductsView(ft.Container):
             expand=True
         )
 
+    def _on_sort(self, col_index, ascending):
+        sort_map = {0: "name", 1: "sku", 2: "barcode", 3: "cost_price", 4: "sale_price", 5: "is_active"}
+        self.current_order_by = sort_map.get(col_index)
+        self.current_order_desc = not ascending
+        self.table.refresh()
+
     def _fetch_products(self, skip, limit):
         with get_db() as db:
-            return product_service.get_all(db, skip=skip, limit=limit)
+            return product_service.get_all(
+                db, 
+                skip=skip, 
+                limit=limit, 
+                include_inactive=self.swt_show_inactive.value,
+                order_by=getattr(self, 'current_order_by', None),
+                order_desc=getattr(self, 'current_order_desc', False)
+            )
 
     def _on_row_selected(self, product):
         self.selected_product = product
@@ -148,6 +168,11 @@ class ProductsView(ft.Container):
         elif taxes:
             dd_tax.value = str(taxes[0].id)
 
+        swt_active = ft.Switch(
+            label="Activo", 
+            value=product.is_active if product else True
+        )
+
         def save_product(e2):
             val_name = (txt_name.value or "").strip()
             val_sale = (txt_sale_price.value or "").strip()
@@ -177,6 +202,7 @@ class ProductsView(ft.Container):
                 "sale_price": sale,
                 "cost_price": cost,
                 "tax_id": dd_tax.value,
+                "is_active": swt_active.value,
             }
 
             with get_db() as db:
@@ -197,6 +223,7 @@ class ProductsView(ft.Container):
                     ft.Row([txt_sku, txt_barcode]),
                     ft.Row([txt_cost_price, txt_sale_price]),
                     dd_tax,
+                    swt_active,
                 ],
                 tight=True,
                 spacing=15

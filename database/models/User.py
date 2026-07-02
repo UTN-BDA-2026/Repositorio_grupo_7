@@ -11,11 +11,12 @@
     # remember_token character varying(100),
     # created_at timestamp(0) without time zone,
     # updated_at timestamp(0) without time zone,
-    # deleted_at timestamp(0) without time zone
+    # deleted_at timestamp(0) without time zone,
+    # is_active boolean DEFAULT true NOT NULL
 # );
 
 import uuid
-from sqlalchemy import Column, String, DateTime, func, ForeignKey, JSON
+from sqlalchemy import Column, String, DateTime, func, ForeignKey, JSON, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from database.db import Base
@@ -32,6 +33,7 @@ class User(Base):
     pos_pin = Column(String(255), nullable=True)
     permissions = Column(JSON, default=dict)
     remember_token = Column(String(100))
+    is_active = Column(Boolean, nullable=False, default=True)
     
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

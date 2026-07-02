@@ -3,7 +3,8 @@ import flet as ft
 
 class PaginatedTable(ft.Column):
     def __init__(self, columns, fetch_data_callback, build_cells_callback,
-                 on_row_click=None, on_row_double_click=None, page_size=10):
+                 on_row_click=None, on_row_double_click=None, page_size=10,
+                 on_sort_callback=None):
         super().__init__()
         self.expand = True
         self.page_size = page_size
@@ -14,6 +15,18 @@ class PaginatedTable(ft.Column):
         self.build_cells_callback = build_cells_callback
         self.on_row_click = on_row_click
         self.on_row_double_click = on_row_double_click
+        self.on_sort_callback = on_sort_callback
+
+        def handle_sort(e: ft.DataColumnSortEvent):
+            self.table.sort_column_index = e.column_index
+            self.table.sort_ascending = e.ascending
+            self.table.update()
+            if self.on_sort_callback:
+                self.on_sort_callback(e.column_index, e.ascending)
+
+        if self.on_sort_callback:
+            for col in columns:
+                col.on_sort = handle_sort
 
         btn_shape = ft.RoundedRectangleBorder(radius=5)
 
